@@ -1,10 +1,10 @@
-from fastapi import FastAPI, Request, UploadFile, File, Form
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse
 import shutil
-import os
 from pathlib import Path
+
+from fastapi import FastAPI, File, Form, Request, UploadFile
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
+
 from .gcode_processor import GCodeParser, Optimizer
 
 app = FastAPI(title="M3DP Post Process")
@@ -20,53 +20,63 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR = Path("outputs")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
+
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
 
 @app.post("/upload", response_class=HTMLResponse)
 async def upload_file(request: Request, file: UploadFile = File(...)):
     file_location = UPLOAD_DIR / file.filename
     with open(file_location, "wb+") as file_object:
         shutil.copyfileobj(file.file, file_object)
-    
+
     # Parse to get initial stats
     parser = GCodeParser(file_path=file_location)
     parser.parse()
-    
-    return templates.TemplateResponse("partials/upload_success.html", {
-        "request": request,
-        "filename": file.filename,
-        "segment_count": len(parser.segments)
-    })
+
+    return templates.TemplateResponse(
+        "partials/upload_success.html",
+        {"request": request, "filename": file.filename, "segment_count": len(parser.segments)},
+    )
+
 
 @app.post("/optimize", response_class=HTMLResponse)
 async def optimize_file(request: Request, filename: str = Form(...)):
     input_path = UPLOAD_DIR / filename
     output_filename = f"optimized_{filename}"
     output_path = OUTPUT_DIR / output_filename
-    
+
     # Parse
     parser = GCodeParser(file_path=input_path)
     parser.parse()
-    
+
     # Optimize
     optimizer = Optimizer(parser.segments)
-    optimized_segments = optimizer.optimize_travel_greedy()
-    
+    result = optimizer.optimize_travel_greedy()
+
     # Generate G-code
-    gcode_content = optimizer.to_gcode(optimized_segments)
-    
+    gcode_content = optimizer.to_gcode(result.segments)
+
     with open(output_path, "w") as f:
         f.write(gcode_content)
-        
-    return templates.TemplateResponse("partials/optimization_result.html", {
-        "request": request,
-        "original_filename": filename,
-        "optimized_filename": output_filename,
-        "original_count": len(parser.segments),
-        "optimized_count": len(optimized_segments)
-    })
+
+    return templates.TemplateResponse(
+        "partials/optimization_result.html",
+        {
+            "request": request,
+            "original_filename": filename,
+            "optimized_filename": output_filename,
+            "original_count": len(parser.segments),
+            "optimized_count": len(result.segments),
+            "optimization_type": result.optimization_type,
+            "original_travel": f"{result.original_travel_dist:.2f}",
+            "optimized_travel": f"{result.optimized_travel_dist:.2f}",
+            "saved_travel": f"{result.original_travel_dist - result.optimized_travel_dist:.2f}",
+        },
+    )
+
 
 @app.get("/download/{filename}")
 async def download_file(filename: str):

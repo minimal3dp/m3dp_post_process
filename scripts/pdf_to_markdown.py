@@ -12,7 +12,6 @@ Usage:
 
 import sys
 from pathlib import Path
-from typing import Optional
 
 try:
     import pymupdf  # PyMuPDF - aka fitz
@@ -39,7 +38,7 @@ def extract_pdf_metadata(pdf_path: Path) -> dict[str, str]:
         return {}
 
 
-def pdf_to_markdown(pdf_path: Path, output_path: Optional[Path] = None) -> Path:
+def pdf_to_markdown(pdf_path: Path, output_path: Path | None = None) -> Path:
     """
     Convert a PDF file to Markdown format.
 

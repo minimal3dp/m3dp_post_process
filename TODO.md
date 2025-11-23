@@ -28,28 +28,30 @@
 ## Tasks
 
 ### Phase 1: Foundation & Infrastructure
-- [ ] **Project Setup:** Initialize `minimal-3dp-platform` repo with Docker Compose structure (FastAPI, Postgres, Redis).
-- [ ] **G-code Parser:** Implement a robust G-code parser in Python that can:
-    -   Identify "Print Segments" (extrusion moves).
-    -   Identify "Travel Moves" (non-extrusion).
-    -   Group segments into "Layers" and "Islands".
-- [ ] **Viewer:** Implement a basic 2D G-code viewer using HTML5 Canvas (or integrate a lightweight JS library like `gcode-preview`) to visualize the path before/after.
+- [x] **Project Setup:** Initialize `minimal-3dp-platform` repo with Docker Compose structure (FastAPI, Postgres, Redis).
+- [x] **G-code Parser:** Implement a robust G-code parser in Python.
+- [ ] **Viewer:** Implement a basic 2D G-code viewer.
 
 ### Phase 2: Optimization Engine
-- [ ] **Travel Optimization (Speed):**
-    -   Implement a "Greedy" optimizer (Next Closest) as a baseline.
-    -   Implement an "ACO" optimizer (Ant Colony) for advanced travel reduction.
-- [ ] **Sequence Reordering:** Logic to safely reorder G-code blocks without breaking dependencies (e.g., don't print layer 2 before layer 1).
+- [x] **Travel Optimization (Speed):**
+    -   [x] Implement a "Greedy" optimizer (Next Closest) as a baseline.
+    -   [ ] Implement an "ACO" optimizer (Ant Colony) for advanced travel reduction.
+- [ ] **Sequence Reordering:** Logic to safely reorder G-code blocks.
 
 ### Phase 3: Web Application
-- [ ] **Upload Interface:** Drag-and-drop G-code upload (HTMX).
+- [x] **Upload Interface:** Drag-and-drop G-code upload (HTMX).
 - [ ] **Dashboard:** View file stats (print time, filament used).
-- [ ] **Optimization Controls:** Select "Speed", "Quality", "Hybrid".
-- [ ] **Results View:** Compare "Original vs. Optimized" stats (e.g., "Saved 15 minutes").
+- [x] **Optimization Controls:** Select "Speed", "Quality", "Hybrid".
+- [x] **Results View:** Compare "Original vs. Optimized" stats.
 
 ### Phase 4: Advanced Features (AI/ML)
-- [ ] **ML Prediction:** Train a simple model to predict "Print Success" or "Stringing Risk" based on G-code features (travel length, retraction count).
-- [ ] **LLM Integration:** Use LLM to parse G-code headers/comments to extract slicer settings (as suggested in Strategy Report).
+- [ ] **ML Prediction:** Train a simple model to predict "Print Success".
+- [ ] **LLM Integration:** Use LLM to parse G-code headers.
+
+## Immediate Tasks (Refinement)
+- [ ] **Environment:** Implement Ruff and Pre-commit.
+- [ ] **UX:** Clarify optimization type (Speed/Cost/Quality) in UI.
+- [ ] **Cleanup:** Remove `requirements.txt`, rely on `pyproject.toml`.
 
 ## Deployment Plan
 1.  **Local Dev:** Docker Compose.

@@ -8,13 +8,17 @@
     </div>
 
     <div class="grid grid-cols-2 gap-4 mb-6 text-left max-w-sm mx-auto">
-        <div class="bg-white p-3 rounded shadow-sm">
-            <p class="text-xs text-gray-500 uppercase">Original Segments</p>
-            <p class="text-lg font-bold text-gray-800">{{ original_count }}</p>
+        <div class="bg-white p-3 rounded shadow-sm col-span-2">
+            <p class="text-xs text-gray-500 uppercase">Optimization Goal</p>
+            <p class="text-lg font-bold text-blue-600">{{ optimization_type }}</p>
         </div>
         <div class="bg-white p-3 rounded shadow-sm">
-            <p class="text-xs text-gray-500 uppercase">Optimized Segments</p>
-            <p class="text-lg font-bold text-green-600">{{ optimized_count }}</p>
+            <p class="text-xs text-gray-500 uppercase">Original Travel</p>
+            <p class="text-lg font-bold text-gray-800">{{ original_travel }} mm</p>
+        </div>
+        <div class="bg-white p-3 rounded shadow-sm">
+            <p class="text-xs text-gray-500 uppercase">Saved Travel</p>
+            <p class="text-lg font-bold text-green-600">{{ saved_travel }} mm</p>
         </div>
     </div>
 
