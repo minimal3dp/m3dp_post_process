@@ -36,6 +36,10 @@
 - [x] **Travel Optimization (Speed):**
     -   [x] Implement a "Greedy" optimizer (Next Closest) as a baseline.
     -   [ ] Implement an "ACO" optimizer (Ant Colony) for advanced travel reduction.
+- [ ] **Structural Optimization (Strength):**
+    -   [ ] **BrickLayers:** Implement "BrickLayers" technique (shifting layers to interlock perimeters) for strength.
+        -   *Reference:* `TengerTechnologies/Bricklayers` (Python script available).
+        -   *Feasibility:* High. Can be adapted from existing script.
 - [ ] **Sequence Reordering:** Logic to safely reorder G-code blocks.
 
 ### Phase 3: Web Application
@@ -43,15 +47,22 @@
 - [ ] **Dashboard:** View file stats (print time, filament used).
 - [x] **Optimization Controls:** Select "Speed", "Quality", "Hybrid".
 - [x] **Results View:** Compare "Original vs. Optimized" stats.
+- [ ] **G-code Viewer:** Integrate a web-based G-code viewer.
+    -   *Recommendation:* **hudbrog/gCodeViewer** (Web-based, Docker-ready).
+    -   *Alternatives:* Most others (`yagv`, `Cute-Gcode`, `tatlin`) are desktop Python apps using OpenGL/Tkinter, which are hard to embed in a web app.
+    -   *Action:* Clone `gCodeViewer` and serve it via iframe or integrate its JS logic.
 
 ### Phase 4: Advanced Features (AI/ML)
 - [ ] **ML Prediction:** Train a simple model to predict "Print Success".
+    -   *Resource:* **Slice-100K** dataset (100k+ G-code files) for training data.
 - [ ] **LLM Integration:** Use LLM to parse G-code headers.
 
 ## Immediate Tasks (Refinement)
-- [ ] **Environment:** Implement Ruff and Pre-commit.
-- [ ] **UX:** Clarify optimization type (Speed/Cost/Quality) in UI.
-- [ ] **Cleanup:** Remove `requirements.txt`, rely on `pyproject.toml`.
+- [x] **Environment:** Implement Ruff and Pre-commit.
+- [x] **UX:** Clarify optimization type (Speed/Cost/Quality) in UI.
+- [x] **Cleanup:** Remove `requirements.txt`, rely on `pyproject.toml`.
+- [ ] **BrickLayers:** Create a new branch `feature/bricklayers` and port the algorithm.
+- [ ] **Viewer:** Create a new branch `feature/viewer` and integrate `gCodeViewer`.
 
 ## Deployment Plan
 1.  **Local Dev:** Docker Compose.
