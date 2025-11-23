@@ -1,42 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>M3DP G-Code Optimizer</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/lil-gui@0.19.1/dist/lil-gui.umd.min.js"></script>
+    <script src="https://unpkg.com/gcode-preview@2.18.0/dist/gcode-preview.js"></script>
 </head>
-<body class="bg-gray-100 min-h-screen p-8">
-    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
-        <h1 class="text-3xl font-bold mb-6 text-gray-800">G-Code Optimizer</h1>
-        
-        <div class="mb-8">
-            <h2 class="text-xl font-semibold mb-4">Upload G-Code</h2>
-            <form hx-post="/upload" hx-encoding="multipart/form-data" hx-target="#result" class="space-y-4">
-                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                    <input type="file" name="file" accept=".gcode" class="block w-full text-sm text-gray-500
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-full file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-blue-50 file:text-blue-700
-                        hover:file:bg-blue-100
-                    "/>
-                </div>
-                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
-                    Upload & Analyze
-                </button>
-            </form>
-        </div>
 
-        <div id="result" class="mt-8">
-            {% if message %}
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-                <strong class="font-bold">Success!</strong>
-                <span class="block sm:inline">{{ message }}</span>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800">G-Code Optimizer</h1>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left Column: Controls -->
+            <div>
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold mb-4">Upload G-Code</h2>
+                    <form hx-post="/upload" hx-encoding="multipart/form-data" hx-target="#result" class="space-y-4">
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                            <input type="file" name="file" accept=".gcode" class="block w-full text-sm text-gray-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-full file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-blue-50 file:text-blue-700
+                                hover:file:bg-blue-100
+                            " />
+                        </div>
+                        <button type="submit"
+                            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition w-full">
+                            Upload & Analyze
+                        </button>
+                    </form>
+                </div>
+
+                <div id="result" class="mt-8">
+                    {% if message %}
+                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative"
+                        role="alert">
+                        <strong class="font-bold">Success!</strong>
+                        <span class="block sm:inline">{{ message }}</span>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-            {% endif %}
+
+            <!-- Right Column: Viewer -->
+            <div class="bg-gray-900 rounded-lg overflow-hidden shadow-inner h-[600px] relative">
+                <h2 class="text-white text-sm font-semibold absolute top-4 left-4 z-10 bg-black/50 px-2 py-1 rounded">
+                    Preview</h2>
+                <canvas id="gcode-preview" class="w-full h-full"></canvas>
+            </div>
         </div>
     </div>
+
+    <script>
+        const canvas = document.getElementById('gcode-preview');
+
+        // Initialize the preview
+        const preview = GCodePreview.init({
+            canvas: canvas,
+            topLayerColor: new THREE.Color('lime').getHex(),
+            lastSegmentColor: new THREE.Color('red').getHex(),
+            buildVolume: { x: 220, y: 220, z: 250 }, // Standard Ender 3 size
+            initialCameraPosition: [0, 400, 450],
+            allowDragNDrop: false,
+        });
+
+        // Handle HTMX after-swap event to trigger preview
+        document.body.addEventListener('htmx:afterSwap', function (evt) {
+            if (evt.detail.target.id === 'result') {
+                const filenameInput = document.querySelector('input[name="filename"]');
+                if (filenameInput) {
+                    const filename = filenameInput.value;
+                    fetch(`/files/${filename}`)
+                        .then(response => {
+                            if (!response.ok) throw new Error("Network response was not ok");
+                            return response.text();
+                        })
+                        .then(gcode => {
+                            preview.processGCode(gcode);
+
+                            // Center camera on the model
+                            if (preview.group) {
+                                const box = new THREE.Box3().setFromObject(preview.group);
+                                const center = box.getCenter(new THREE.Vector3());
+
+                                // Update controls target to look at the model center
+                                preview.controls.target.copy(center);
+                                preview.controls.update();
+                            }
+                        })
+                        .catch(error => console.error("Error fetching G-code:", error));
+                } else {
+                    console.error("Filename input not found!");
+                }
+            }
+        });
+    </script>
 </body>
+
 </html>

@@ -47,7 +47,7 @@
 - [ ] **Dashboard:** View file stats (print time, filament used).
 - [x] **Optimization Controls:** Select "Speed", "Quality", "Hybrid".
 - [x] **Results View:** Compare "Original vs. Optimized" stats.
-- [ ] **G-code Viewer:** Integrate a web-based G-code viewer.
+- [x] **G-code Viewer:** Integrate a web-based G-code viewer.
     -   *Recommendation:* **hudbrog/gCodeViewer** (Web-based, Docker-ready).
     -   *Alternatives:* Most others (`yagv`, `Cute-Gcode`, `tatlin`) are desktop Python apps using OpenGL/Tkinter, which are hard to embed in a web app.
     -   *Action:* Clone `gCodeViewer` and serve it via iframe or integrate its JS logic.
@@ -62,7 +62,7 @@
 - [x] **UX:** Clarify optimization type (Speed/Cost/Quality) in UI.
 - [x] **Cleanup:** Remove `requirements.txt`, rely on `pyproject.toml`.
 - [ ] **BrickLayers:** Create a new branch `feature/bricklayers` and port the algorithm.
-- [ ] **Viewer:** Create a new branch `feature/viewer` and integrate `gCodeViewer`.
+- [x] **Viewer:** Create a new branch `feature/viewer` and integrate `gCodeViewer`.
 
 ## Deployment Plan
 1.  **Local Dev:** Docker Compose.

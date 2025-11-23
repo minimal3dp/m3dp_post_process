@@ -82,3 +82,8 @@ async def optimize_file(request: Request, filename: str = Form(...)):
 async def download_file(filename: str):
     file_path = OUTPUT_DIR / filename
     return FileResponse(file_path, filename=filename)
+
+@app.get("/files/{filename}")
+async def get_file(filename: str):
+    file_path = UPLOAD_DIR / filename
+    return FileResponse(file_path)
