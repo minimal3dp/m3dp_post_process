@@ -1,1 +1,5 @@
+# Ignore PDF files (too large for git)
 research/*.pdf
+
+# Track markdown conversions of research PDFs
+!research/*.md
