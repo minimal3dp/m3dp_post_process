@@ -43,7 +43,11 @@ async def upload_file(request: Request, file: UploadFile = File(...)):
 
 
 @app.post("/optimize", response_class=HTMLResponse)
-async def optimize_file(request: Request, filename: str = Form(...)):
+async def optimize_file(
+    request: Request,
+    filename: str = Form(...),
+    optimization_type: str = Form("travel"),  # "travel" or "bricklayers"
+):
     input_path = UPLOAD_DIR / filename
     output_filename = f"optimized_{filename}"
     output_path = OUTPUT_DIR / output_filename
@@ -52,12 +56,24 @@ async def optimize_file(request: Request, filename: str = Form(...)):
     parser = GCodeParser(file_path=input_path)
     parser.parse()
 
-    # Optimize
-    optimizer = Optimizer(parser.segments)
-    result = optimizer.optimize_travel_greedy()
+    # Optimize based on type
+    if optimization_type == "bricklayers":
+        from .bricklayers import BrickLayersOptimizer, BrickLayersConfig
+
+        config = BrickLayersConfig()
+        optimizer_bl = BrickLayersOptimizer(parser.segments, config)
+        result = optimizer_bl.optimize()
+    else:  # Default to travel optimization
+        optimizer = Optimizer(parser.segments)
+        result = optimizer.optimize_travel_greedy()
 
     # Generate G-code
-    gcode_content = optimizer.to_gcode(result.segments)
+    if optimization_type == "bricklayers":
+        # For BrickLayers, segments contain original_text
+        gcode_content = "\n".join(seg.original_text for seg in result.segments if seg.original_text)
+    else:
+        optimizer = Optimizer(parser.segments)
+        gcode_content = optimizer.to_gcode(result.segments)
 
     with open(output_path, "w") as f:
         f.write(gcode_content)
@@ -74,6 +90,7 @@ async def optimize_file(request: Request, filename: str = Form(...)):
             "original_travel": f"{result.original_travel_dist:.2f}",
             "optimized_travel": f"{result.optimized_travel_dist:.2f}",
             "saved_travel": f"{result.original_travel_dist - result.optimized_travel_dist:.2f}",
+            "metadata": result.metadata,
         },
     )
 

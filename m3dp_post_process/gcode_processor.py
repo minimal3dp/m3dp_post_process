@@ -168,6 +168,7 @@ class OptimizationResult:
     original_travel_dist: float
     optimized_travel_dist: float
     optimization_type: str
+    metadata: dict | None = None  # Optional metadata for optimization-specific stats
 
 
 class Optimizer:
