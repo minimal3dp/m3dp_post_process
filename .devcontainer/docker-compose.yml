@@ -7,6 +7,11 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ..:/workspace:cached
+      - type: bind
+        source: ${SSH_AUTH_SOCK:-/tmp/ssh-agent-dummy}
+        target: /ssh-agent
+    environment:
+      - SSH_AUTH_SOCK=/ssh-agent
     command: sleep infinity
     # Network configuration allows app to connect to db on localhost
     # Uncomment depends_on when enabling PostgreSQL

@@ -26,6 +26,55 @@ This project uses Podman instead of Docker. The devcontainer is fully compatible
 
 3. Open the project in VS Code and select "Reopen in Container" when prompted
 
+## SSH Key Forwarding for GitHub
+
+The devcontainer forwards your host machine's SSH agent, allowing git operations with GitHub without copying SSH keys into the container.
+
+### How to Enable
+
+**After modifying `devcontainer.json` to add SSH mounts, you must rebuild:**
+
+1. Open Command Palette: `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS)
+2. Select: **"Dev Containers: Rebuild Container"**
+3. Wait for rebuild to complete
+
+### Verify SSH Access
+
+Test GitHub authentication:
+
+```bash
+ssh -T git@github.com
+```
+
+Expected output:
+```
+Hi USERNAME! You've successfully authenticated, but GitHub does not provide shell access.
+```
+
+### Troubleshooting SSH
+
+**"Permission denied (publickey)" error:**
+
+1. **On your host machine** (not in container):
+   ```bash
+   # Check SSH agent is running
+   echo $SSH_AUTH_SOCK
+   
+   # List loaded keys
+   ssh-add -l
+   
+   # Add your key if not listed
+   ssh-add ~/.ssh/id_ed25519  # or ~/.ssh/id_rsa
+   ```
+
+2. **In the container**, verify mount:
+   ```bash
+   echo $SSH_AUTH_SOCK  # Should show /ssh-agent
+   ls -la /ssh-agent    # Should exist
+   ```
+
+3. **Verify GitHub key**: Check https://github.com/settings/keys has your public key
+
 ### Manual Start
 
 ```bash

@@ -61,7 +61,7 @@
   "remoteUser": "vscode",
 
   // Run commands after container is created
-  "postCreateCommand": "bash -c 'rm -rf .venv && uv venv && uv pip install -e \".[dev]\"'",
+  "postCreateCommand": "uv pip install -e '.[dev]'",
 
   // Features to add to the dev container
   "features": {
