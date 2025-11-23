@@ -33,33 +33,36 @@ class BrickLayersOptimizer:
     to create interlocking layers, improving print strength.
     """
 
-    def __init__(self, segments: list[Segment], config: BrickLayersConfig | None = None):
-        self.segments = segments
+    def __init__(self, file_path: str, config: BrickLayersConfig | None = None):
+        self.file_path = file_path
         self.config = config or BrickLayersConfig()
         self.z_shift = self.config.layer_height * 0.5
 
-    def optimize(self) -> OptimizationResult:
+    def optimize(self, output_path: str) -> OptimizationResult:
         """
-        Apply BrickLayers optimization to the segments.
+        Apply BrickLayers optimization to the G-code file.
+
+        Args:
+            output_path: Path where optimized G-code will be written
 
         Returns:
-            OptimizationResult with modified segments and statistics
+            OptimizationResult with statistics
         """
         logger.info("Starting BrickLayers optimization")
         logger.info(
             f"Z-shift: {self.z_shift} mm, Layer height: {self.config.layer_height} mm"
         )
 
-        # Convert segments back to G-code lines for processing
-        gcode_lines = self._segments_to_gcode()
+        # Read the input G-code file
+        with open(self.file_path, 'r') as f:
+            gcode_lines = f.readlines()
 
         # Process the G-code
         modified_lines = self._process_gcode(gcode_lines)
 
-        # Convert back to segments using content parameter
-        parser = GCodeParser(content="\n".join(modified_lines))
-        parser.parse()
-        modified_segments = parser.segments
+        # Write the output file
+        with open(output_path, 'w') as f:
+            f.writelines(modified_lines)
 
         # Calculate statistics
         total_layers = self._count_layers(gcode_lines)
@@ -69,7 +72,7 @@ class BrickLayersOptimizer:
         logger.info(f"Total layers: {total_layers}, Shifted blocks: {shifted_blocks}")
 
         return OptimizationResult(
-            segments=modified_segments,
+            segments=[],  # Not used for BrickLayers
             optimization_type="BrickLayers (Strength)",
             original_travel_dist=0.0,  # Not applicable for this optimization
             optimized_travel_dist=0.0,
@@ -79,14 +82,6 @@ class BrickLayersOptimizer:
                 "z_shift_mm": self.z_shift,
             },
         )
-
-    def _segments_to_gcode(self) -> list[str]:
-        """Convert segments back to G-code lines."""
-        lines = []
-        for seg in self.segments:
-            if seg.original_text:
-                lines.append(seg.original_text)
-        return lines
 
     def _process_gcode(self, lines: list[str]) -> list[str]:
         """

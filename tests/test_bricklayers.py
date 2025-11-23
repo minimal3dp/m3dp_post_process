@@ -46,66 +46,68 @@ def test_bricklayers_config_custom():
     assert config.extrusion_multiplier == 1.2
 
 
-def test_bricklayers_optimizer_initialization(sample_gcode):
+def test_bricklayers_optimizer_initialization(tmp_path):
     """Test BrickLayersOptimizer initialization."""
-    parser = GCodeParser(content=sample_gcode)
-    parser.parse()
-    segments = parser.segments
+    # Create a temporary G-code file
+    gcode_file = tmp_path / "test.gcode"
+    gcode_file.write_text("G1 Z0.2\nG1 X10 Y10 E0.5")
     
     config = BrickLayersConfig()
-    optimizer = BrickLayersOptimizer(segments, config)
+    optimizer = BrickLayersOptimizer(str(gcode_file), config)
     
     assert optimizer.config.layer_height == 0.2
     assert optimizer.z_shift == 0.1  # 0.2 * 0.5
 
 
-def test_bricklayers_optimize(sample_gcode):
+def test_bricklayers_optimize(sample_gcode, tmp_path):
     """Test BrickLayersOptimizer.optimize() returns OptimizationResult."""
-    parser = GCodeParser(content=sample_gcode)
-    parser.parse()
-    segments = parser.segments
+    # Create input and output files
+    input_file = tmp_path / "input.gcode"
+    output_file = tmp_path / "output.gcode"
+    input_file.write_text(sample_gcode)
     
-    optimizer = BrickLayersOptimizer(segments)
-    result = optimizer.optimize()
+    optimizer = BrickLayersOptimizer(str(input_file))
+    result = optimizer.optimize(str(output_file))
     
     assert result.optimization_type == "BrickLayers (Strength)"
     assert "total_layers" in result.metadata
     assert "shifted_blocks" in result.metadata
     assert "z_shift_mm" in result.metadata
     assert result.metadata["z_shift_mm"] == 0.1
+    assert output_file.exists()
 
 
-def test_bricklayers_shifts_odd_blocks(sample_gcode):
+def test_bricklayers_shifts_odd_blocks(sample_gcode, tmp_path):
     """Test that BrickLayers shifts odd-numbered perimeter blocks."""
-    parser = GCodeParser(content=sample_gcode)
-    parser.parse()
-    segments = parser.segments
+    input_file = tmp_path / "input.gcode"
+    output_file = tmp_path / "output.gcode"
+    input_file.write_text(sample_gcode)
     
-    optimizer = BrickLayersOptimizer(segments)
-    result = optimizer.optimize()
+    optimizer = BrickLayersOptimizer(str(input_file))
+    result = optimizer.optimize(str(output_file))
     
-    # Convert result segments back to G-code to check for shift comments
-    gcode_lines = [seg.original_text for seg in result.segments if seg.original_text]
+    # Read output and check for shift comments
+    output_content = output_file.read_text()
     
     # Should have at least one shifted block
-    shifted_lines = [line for line in gcode_lines if "; Shifted Z for block #" in line]
-    assert len(shifted_lines) > 0
+    assert "; Shifted Z for block #" in output_content
 
 
-def test_bricklayers_count_layers(sample_gcode):
+def test_bricklayers_count_layers(sample_gcode, tmp_path):
     """Test layer counting."""
-    parser = GCodeParser(content=sample_gcode)
-    parser.parse()
-    segments = parser.segments
+    input_file = tmp_path / "input.gcode"
+    input_file.write_text(sample_gcode)
     
-    optimizer = BrickLayersOptimizer(segments)
-    lines = optimizer._segments_to_gcode()
+    optimizer = BrickLayersOptimizer(str(input_file))
+    
+    with open(input_file, 'r') as f:
+        lines = f.readlines()
     
     layer_count = optimizer._count_layers(lines)
     assert layer_count == 2  # Sample has 2 layers
 
 
-def test_bricklayers_with_no_perimeters():
+def test_bricklayers_with_no_perimeters(tmp_path):
     """Test BrickLayers with G-code that has no perimeters."""
     gcode = """
 G1 Z0.2
@@ -113,12 +115,12 @@ G1 X10 Y10 E0.5
 G1 Z0.4
 G1 X20 Y20 E1.0
 """
-    parser = GCodeParser(content=gcode)
-    parser.parse()
-    segments = parser.segments
+    input_file = tmp_path / "input.gcode"
+    output_file = tmp_path / "output.gcode"
+    input_file.write_text(gcode)
     
-    optimizer = BrickLayersOptimizer(segments)
-    result = optimizer.optimize()
+    optimizer = BrickLayersOptimizer(str(input_file))
+    result = optimizer.optimize(str(output_file))
     
     # Should still return a valid result
     assert result.optimization_type == "BrickLayers (Strength)"
