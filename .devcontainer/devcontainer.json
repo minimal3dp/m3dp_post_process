@@ -1,0 +1,85 @@
+{
+  "name": "m3dp_post_process",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+
+  // Configure tool-specific properties
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "ms-python.mypy-type-checker",
+        "ms-azuretools.vscode-docker",
+        "github.copilot",
+        "github.copilot-chat",
+        "eamodio.gitlens",
+        "visualstudioexptteam.vscodeintellicode"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/workspace/.venv/bin/python",
+        "python.terminal.activateEnvironment": true,
+        "python.analysis.typeCheckingMode": "basic",
+        "python.analysis.autoImportCompletions": true,
+        "python.linting.enabled": true,
+        "python.linting.ruffEnabled": true,
+        "python.formatting.provider": "none",
+        "[python]": {
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+          },
+          "editor.defaultFormatter": "charliermarsh.ruff"
+        },
+        "mypy-type-checker.args": [
+          "--ignore-missing-imports",
+          "--show-error-codes"
+        ],
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/*.pyc": true,
+          ".pytest_cache": true,
+          ".mypy_cache": true,
+          ".ruff_cache": true
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
+    }
+  },
+
+  // Use 'forwardPorts' to make a list of ports inside the container available locally
+  "forwardPorts": [
+    8000,  // FastAPI
+    5432   // PostgreSQL (when uncommented)
+  ],
+
+  // Uncomment to connect as root instead
+  // "remoteUser": "root",
+  "remoteUser": "vscode",
+
+  // Run commands after container is created
+  "postCreateCommand": "bash -c 'rm -rf .venv && uv venv && uv pip install -e \".[dev]\"'",
+
+  // Features to add to the dev container
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "username": "vscode",
+      "userUid": "1000",
+      "userGid": "1000"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest"
+    }
+  },
+
+  // Mount host's Podman socket (macOS uses different path)
+  // Uncomment if you need Docker-in-Docker functionality
+  // "mounts": [
+  //   "source=${env:HOME}/.local/share/containers/podman/machine/podman.sock,target=/var/run/docker.sock,type=bind"
+  // ]
+}
