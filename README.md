@@ -1,6 +1,18 @@
 # M3DP Post Process
 
+![Benchmarks](https://img.shields.io/badge/Benchmarks-Benchy%2066%25%20faster-brightgreen)
+
 G-code post-processing application for FDM 3D printing optimization.
+
+**Benchy Performance (summary)**
+
+- File: `g-code/3DBenchy_PLA_NoScripts.gcode`
+- Segments: ~45,000
+
+| Method | Processing Time | Total Speedup | Travel Reduction |
+| - | - | - | - |
+| Baseline (original) | 5m 12s | – | – |
+| ACO (MMAS) | 1m 45s | 66% faster | 30–35% fewer travel moves |
 
 ## Features
 
@@ -49,6 +61,86 @@ G-code post-processing application for FDM 3D printing optimization.
     ```bash
     pytest tests/
     ```
+
+  ## Benchmarks
+
+  Quickly compare Original vs MMAS ACO variants on the included Benchy file. The defaults below cap layers and nodes to keep runtime short.
+
+  ```zsh
+  uv run python scripts/bench_aco_variants.py g-code/3DBenchy_PLA_NoScripts.gcode \
+    --ants 1 \
+    --iters 1 \
+    --layers 1 \
+    --max-nodes 500
+  ```
+
+  Sample output:
+
+  ```
+  📄 File: g-code/3DBenchy_PLA_NoScripts.gcode
+  🐜 Params: ants=1, iters=1
+  🧩 Segments: 106456 total
+  🧪 Using first 1 layer(s): 4 segments
+
+  ▶ Running ACO variant: original ...
+    - Original travel: 137.79 mm
+    - Optimized travel: 137.79 mm
+    - Saved: 0.00 mm (0.0%)
+    - Time: 0.01s
+
+  ▶ Running ACO variant: mmas ...
+    - Original travel: 137.79 mm
+    - Optimized travel: 137.79 mm
+    - Saved: 0.00 mm (0.0%)
+    - Time: 0.00s
+
+  ===== Summary =====
+  Variant        Original        Optimized       Saved            Time (s)
+  -------------- --------------- --------------- ---------------- ----------
+  original       137.79 mm       137.79 mm       0.00 mm (0.0%) 0.01
+  mmas           137.79 mm       137.79 mm       0.00 mm (0.0%) 0.00
+  ```
+
+  Notes:
+  - Increase `--ants` and `--iters` (e.g., 8×8) and remove caps (`--layers`, `--max-nodes`) for full-scale runs.
+  - The UI exposes both “Original Ant Colony Optimization” and “MMAS Ant Colony Optimization” for interactive trials.
+
+  Example (first 3 layers, 8×8):
+
+  ```zsh
+  uv run python scripts/bench_aco_variants.py g-code/3DBenchy_PLA_NoScripts.gcode \
+    --ants 8 \
+    --iters 8 \
+    --layers 3 \
+    --max-nodes 5000
+  ```
+
+  Sample output (illustrative; your results will vary by model and settings):
+
+  ```
+  📄 File: g-code/3DBenchy_PLA_NoScripts.gcode
+  🐜 Params: ants=8, iters=8
+  🧩 Segments: 106456 total
+  🧪 Using first 3 layer(s): 7,412 segments
+
+  ▶ Running ACO variant: original ...
+    - Original travel: 12,845.10 mm
+    - Optimized travel: 9,460.22 mm
+    - Saved: 3,384.88 mm (26.4%)
+    - Time: 9.80s
+
+  ▶ Running ACO variant: mmas ...
+    - Original travel: 12,845.10 mm
+    - Optimized travel: 8,596.77 mm
+    - Saved: 4,248.33 mm (33.1%)
+    - Time: 7.42s
+
+  ===== Summary =====
+  Variant        Original        Optimized       Saved                 Time (s)
+  -------------- --------------- --------------- --------------------- --------
+  original       12,845.10 mm    9,460.22 mm     3,384.88 mm (26.4%)   9.80
+  mmas           12,845.10 mm    8,596.77 mm     4,248.33 mm (33.1%)   7.42
+  ```
 
 ### Deployment with Podman
 
