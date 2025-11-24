@@ -4,10 +4,20 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "m3dp-post-process"
-version = "0.1.0"
-description = "G-code post-processing application for FDM 3D printing optimization"
+version = "0.2.0"
+description = "Research-backed G-code post-processing for FDM 3D printing optimization using Ant Colony Optimization"
 readme = "README.md"
 requires-python = ">=3.12"
+authors = [
+    {name = "Minimal3DP Development Team", email = "contact@minimal3dp.com"}
+]
+keywords = ["3d-printing", "gcode", "optimization", "ant-colony", "fdm"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Manufacturing",
+    "Topic :: Scientific/Engineering",
+    "Programming Language :: Python :: 3.12",
+]
 dependencies = [
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",

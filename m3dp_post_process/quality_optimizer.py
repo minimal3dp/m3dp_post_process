@@ -14,7 +14,7 @@ from typing import List, Optional, Tuple
 import math
 import random
 
-from .gcode_processor import Segment, SegmentType, OptimizationResult
+from .gcode_processor import Segment, SegmentType, OptimizationResult, Optimizer
 
 
 # Helper functions to work with Segment structure
@@ -101,6 +101,11 @@ class QualityOptimizer:
         original_travel = self._calculate_travel_distance(self.segments)
         optimized_travel = self._calculate_travel_distance(optimized_segments)
         
+        # Calculate print time and material usage
+        temp_optimizer = Optimizer(optimized_segments)
+        print_time = temp_optimizer._calculate_print_time(optimized_segments)
+        material_mm, material_grams = temp_optimizer._calculate_material_usage(optimized_segments)
+        
         return OptimizationResult(
             segments=optimized_segments,
             original_travel_dist=original_travel,
@@ -111,7 +116,10 @@ class QualityOptimizer:
                 "seams_optimized": self.seams_optimized,
                 "shell_crossings_reduced": self.config.reduce_shell_crossings,
                 "crossings_eliminated": self.crossings_eliminated,
-            }
+            },
+            print_time_seconds=print_time,
+            material_used_mm=material_mm,
+            material_used_grams=material_grams,
         )
     
     def _optimize_seams(self, segments: List[Segment]) -> List[Segment]:

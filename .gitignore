@@ -13,6 +13,10 @@ outputs/
 .coverage
 .cache/
 
+# Logs
+*.log
+server.log
+
 # Python
 __pycache__/
 *.py[cod]

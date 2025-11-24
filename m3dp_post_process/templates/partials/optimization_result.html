@@ -5,14 +5,94 @@
                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
         <h3 class="text-xl font-bold text-gray-900 mt-2">Optimization Complete!</h3>
+        <p class="text-sm text-gray-500 mt-1">{{ optimization_type }}</p>
     </div>
 
-    <div class="grid grid-cols-2 gap-4 mb-6 text-left max-w-sm mx-auto">
-        <div class="bg-white p-3 rounded shadow-sm col-span-2">
-            <p class="text-xs text-gray-500 uppercase">Optimization Goal</p>
-            <p class="text-lg font-bold text-blue-600">{{ optimization_type }}</p>
-        </div>
+    <!-- Before/After Comparison -->
+    {% if original_print_time or original_material_mm %}
+    <div class="mb-6 p-4 bg-white rounded-lg border border-gray-200">
+        <h4 class="text-sm font-semibold text-gray-700 mb-4">📊 Before & After Comparison</h4>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Print Time Comparison -->
+            {% if original_print_time and print_time_seconds %}
+            <div class="p-3 bg-gradient-to-r from-red-50 to-green-50 rounded border border-gray-200">
+                <p class="text-xs text-gray-500 uppercase mb-2">⏱️ Print Time</p>
+                <div class="flex items-center justify-between text-sm mb-1">
+                    <span class="text-gray-600">Before:</span>
+                    <span class="font-semibold">
+                        {% if original_print_time >= 3600 %}
+                            {{ "%d"|format(original_print_time // 3600) }}h {{ "%02d"|format((original_print_time % 3600) // 60) }}m
+                        {% else %}
+                            {{ "%d"|format(original_print_time // 60) }} min
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="flex items-center justify-between text-sm mb-2">
+                    <span class="text-gray-600">After:</span>
+                    <span class="font-bold text-green-600">
+                        {% if print_time_seconds >= 3600 %}
+                            {{ "%d"|format(print_time_seconds // 3600) }}h {{ "%02d"|format((print_time_seconds % 3600) // 60) }}m
+                        {% else %}
+                            {{ "%d"|format(print_time_seconds // 60) }} min
+                        {% endif %}
+                    </span>
+                </div>
+                {% set time_saved = original_print_time - print_time_seconds %}
+                {% set time_percent = ((original_print_time - print_time_seconds) / original_print_time * 100) %}
+                <div class="pt-2 border-t border-gray-200">
+                    <span class="text-xs font-bold text-green-700">
+                        {% if time_saved > 0 %}
+                        ⚡ Saved {{ "%d"|format(time_saved // 60) }} min ({{ "%.1f"|format(time_percent) }}%)
+                        {% else %}
+                        ℹ️ Time unchanged
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            {% endif %}
 
+            <!-- Material Comparison -->
+            {% if original_material_mm and material_used_mm %}
+            <div class="p-3 bg-gradient-to-r from-red-50 to-green-50 rounded border border-gray-200">
+                <p class="text-xs text-gray-500 uppercase mb-2">🧵 Filament Usage</p>
+                <div class="flex items-center justify-between text-sm mb-1">
+                    <span class="text-gray-600">Before:</span>
+                    <span class="font-semibold">
+                        {{ "%.1f"|format(original_material_mm / 1000) }} m
+                        {% if original_material_grams %}
+                        <span class="text-xs text-gray-500">({{ "%.1f"|format(original_material_grams) }}g)</span>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="flex items-center justify-between text-sm mb-2">
+                    <span class="text-gray-600">After:</span>
+                    <span class="font-bold text-green-600">
+                        {{ "%.1f"|format(material_used_mm / 1000) }} m
+                        {% if material_used_grams %}
+                        <span class="text-xs text-gray-500">({{ "%.1f"|format(material_used_grams) }}g)</span>
+                        {% endif %}
+                    </span>
+                </div>
+                {% set material_saved = original_material_mm - material_used_mm %}
+                {% set material_percent = ((original_material_mm - material_used_mm) / original_material_mm * 100) %}
+                <div class="pt-2 border-t border-gray-200">
+                    <span class="text-xs font-bold text-green-700">
+                        {% if material_saved > 0 %}
+                        💰 Saved {{ "%.1f"|format(material_saved / 1000) }} m ({{ "%.1f"|format(material_percent) }}%)
+                        {% else %}
+                        ℹ️ Material unchanged
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Optimization Details -->
+    <div class="grid grid-cols-2 gap-4 mb-6 text-left max-w-2xl mx-auto">
         {% if metadata and metadata.get('total_layers') %}
         <!-- BrickLayers specific stats -->
         <div class="bg-white p-3 rounded shadow-sm">
@@ -34,8 +114,23 @@
             <p class="text-lg font-bold text-gray-800">{{ original_travel }} mm</p>
         </div>
         <div class="bg-white p-3 rounded shadow-sm">
-            <p class="text-xs text-gray-500 uppercase">Saved Travel</p>
-            <p class="text-lg font-bold text-green-600">{{ saved_travel }} mm</p>
+            <p class="text-xs text-gray-500 uppercase">Optimized Travel</p>
+            <p class="text-lg font-bold text-green-600">{{ optimized_travel }} mm</p>
+        </div>
+        <div class="bg-white p-3 rounded shadow-sm col-span-2">
+            <p class="text-xs text-gray-500 uppercase">Travel Distance Saved</p>
+            <p class="text-lg font-bold text-blue-600">{{ saved_travel }} mm</p>
+        </div>
+        {% endif %}
+
+        {% if metadata and metadata.get('algorithm') == 'aco' %}
+        <!-- ACO specific stats -->
+        <div class="bg-white p-3 rounded shadow-sm col-span-2">
+            <p class="text-xs text-gray-500 uppercase">🐜 ACO Algorithm Statistics</p>
+            <p class="text-sm text-gray-700">
+                {{ metadata.num_ants }} ants × {{ metadata.num_iterations }} iterations
+                ({{ "%.1f"|format(metadata.processing_time_s) }}s processing)
+            </p>
         </div>
         {% endif %}
     </div>
