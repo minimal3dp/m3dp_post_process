@@ -62,6 +62,16 @@ G-code post-processing application for FDM 3D printing optimization.
     pytest tests/
     ```
 
+### Benchmarks via Make
+
+Run preset benchmarks using Python (uv) through Make targets:
+
+```zsh
+make bench-quick    # 1×1, first layer; fast sanity compare
+make bench-3layers  # 8×8, first 3 layers; illustrative compare
+make bench-full     # 8×8 over full file; longer runtime
+```
+
   ## Benchmarks
 
   Quickly compare Original vs MMAS ACO variants on the included Benchy file. The defaults below cap layers and nodes to keep runtime short.
