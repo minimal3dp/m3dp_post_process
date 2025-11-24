@@ -5,7 +5,7 @@ PY=$(UV) run python
 BENCH=Scripts to compare ACO variants on G-code
 FILE=g-code/3DBenchy_PLA_NoScripts.gcode
 
-.PHONY: bench-quick bench-3layers bench-full help bench list-presets
+.PHONY: bench-quick bench-3layers bench-full help bench list-presets init-bench
 
 help:
 	@echo "Available targets:"
@@ -39,3 +39,13 @@ bench:
 
 list-presets:
 	$(PY) scripts/bench.py --list
+
+# Scaffold bench.json from template if missing
+init-bench:
+	@if [ -f bench.json ]; then \
+		echo "bench.json already exists"; \
+	else \
+		mkdir -p presets; \
+		cp presets/preset.template.json bench.json; \
+		echo "Created bench.json from presets/preset.template.json"; \
+	fi
