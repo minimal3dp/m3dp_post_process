@@ -7,6 +7,11 @@ research/*.pdf
 # Runtime directories
 uploads/
 outputs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.cache/
 
 # Python
 __pycache__/
@@ -32,3 +37,6 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+
+# UV cache
+/.cache/uv/

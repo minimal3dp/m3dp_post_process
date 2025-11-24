@@ -5,14 +5,20 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        USER_UID: 1000
+        USER_GID: 1000
     volumes:
       - ..:/workspace:cached
       - type: bind
         source: ${SSH_AUTH_SOCK:-/tmp/ssh-agent-dummy}
         target: /ssh-agent
+      - uv-cache:/home/vscode/.cache/uv
     environment:
       - SSH_AUTH_SOCK=/ssh-agent
+      - UV_CACHE_DIR=/home/vscode/.cache/uv
     command: sleep infinity
+    user: vscode
     # Network configuration allows app to connect to db on localhost
     # Uncomment depends_on when enabling PostgreSQL
     # depends_on:
@@ -34,6 +40,7 @@ services:
 
 volumes:
   postgres-data:
+  uv-cache:
 
 # Notes for using with Podman:
 # 1. Podman socket should be aliased to Docker socket in devcontainer.json mounts

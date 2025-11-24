@@ -62,6 +62,15 @@
 
   // Run commands after container is created
   "postCreateCommand": "uv pip install -e '.[dev]'",
+  // Run commands after container starts (every time)
+  "postStartCommand": ".devcontainer/fix-permissions.sh",
+
+  // Environment variables
+  "containerEnv": {
+    "UV_PROJECT_ENVIRONMENT": "/workspace/.venv",
+    "PYTHONUNBUFFERED": "1"
+  },
+
 
   // Features to add to the dev container
   "features": {

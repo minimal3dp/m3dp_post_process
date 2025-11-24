@@ -115,7 +115,10 @@ async def optimize_file(
             quality_result = quality_opt.optimize()
             
             # Merge metadata
-            result.metadata.update(quality_result.metadata)
+            if result.metadata is None:
+                result.metadata = {}
+            if quality_result.metadata:
+                result.metadata.update(quality_result.metadata)
             result.segments = quality_result.segments
         
         # Generate G-code for travel optimization
