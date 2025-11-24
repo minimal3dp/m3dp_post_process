@@ -73,6 +73,7 @@ make bench-full     # 8×8 over full file; longer runtime
 make list-presets   # list presets from bench.json
 make bench PRESET=3layers  # run any preset
 make init-bench     # create bench.json from template if missing
+make init-bench OUT=bench.local.json  # create at a custom path
 ```
 
 ### Custom Presets
