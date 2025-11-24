@@ -36,9 +36,23 @@ async def upload_file(request: Request, file: UploadFile = File(...)):
     parser = GCodeParser(file_path=file_location)
     parser.parse()
 
+    # Calculate original metrics for comparison
+    from .gcode_processor import Optimizer
+    temp_optimizer = Optimizer(parser.segments)
+    original_print_time = temp_optimizer._calculate_print_time(parser.segments)
+    original_material_mm, original_material_grams = temp_optimizer._calculate_material_usage(parser.segments)
+    
+
     return templates.TemplateResponse(
         "partials/upload_success.html",
-        {"request": request, "filename": file.filename, "segment_count": len(parser.segments)},
+        {
+            "request": request,
+            "filename": file.filename,
+            "segment_count": len(parser.segments),
+            "original_print_time": original_print_time,
+            "original_material_mm": original_material_mm,
+            "original_material_grams": original_material_grams,
+        },
     )
 
 
@@ -65,6 +79,12 @@ async def optimize_file(
     # Parse
     parser = GCodeParser(file_path=input_path)
     parser.parse()
+    
+    # Calculate original metrics before optimization
+    from .gcode_processor import Optimizer as MetricsOptimizer
+    temp_optimizer_for_original = MetricsOptimizer(parser.segments)
+    original_print_time = temp_optimizer_for_original._calculate_print_time(parser.segments)
+    original_material_mm, original_material_grams = temp_optimizer_for_original._calculate_material_usage(parser.segments)
 
     # Optimize based on type
     if optimization_type == "bricklayers":
@@ -145,6 +165,9 @@ async def optimize_file(
             "print_time_seconds": result.print_time_seconds,
             "material_used_mm": result.material_used_mm,
             "material_used_grams": result.material_used_grams,
+            "original_print_time": original_print_time,
+            "original_material_mm": original_material_mm,
+            "original_material_grams": original_material_grams,
         },
     )
 
