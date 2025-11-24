@@ -2,210 +2,304 @@
 
 ## Project Overview
 
-This is a **Python-based G-code post-processing application** for FDM 3D printing optimization, part of the minimal3dp.com ecosystem. The application enables users to upload G-code files and apply optimization strategies (speed, cost, quality, physical properties) through advanced path planning and parameter adjustment algorithms.
+**Python FastAPI application** for G-code post-processing and FDM 3D printing optimization. Part of minimal3dp.com ecosystem. Current implementation includes travel optimization (greedy/ACO), BrickLayers strength enhancement, and quality improvements (seam hiding).
 
-## Core Mission
+## Architecture & Code Structure
 
-Transform slicer-generated G-code into optimized print instructions by applying research-validated algorithms that most slicers (including OrcaSlicer, Cura, PrusaSlicer) lack: graph theory path planning, Ant Colony Optimization (ACO), K-means clustering for parameter optimization, and kinematic smoothing.
-
-## Brand Context: minimal3dp.com
-
-**Brand Identity:** Minimal 3DP (operated by Mike Wilson) specializes in making complex 3D printing topics accessible to "Ambitious Beginners" and intermediate users. The brand's philosophy is **functional minimalism**—taking inherently complex subjects (Klipper firmware, advanced calibration) and minimizing cognitive load through practical tools.
-
-**Ecosystem Integration:** All tools must integrate with:
-- Main site: minimal3dp.com (Hugo static site)
-- YouTube channel (primary content engine)
-- Klipper calibration tools suite
-- OrcaSlicer expertise
-
-## Technical Architecture (From Strategic Plan)
-
-### Target Stack
-- **Language:** Python 3.12+
-- **Framework:** FastAPI (backend API), with potential for HTMX/Jinja2 frontend
-- **Database:** PostgreSQL with JSONB for flexible configuration storage
-- **Deployment:** Docker Compose for development, Vercel for production hosting
-
-### Architecture Pattern: Modular Monolith
-Avoid microservices complexity. Structure as domain-separated modules within single repo:
+### Current Implementation (Flat Module Pattern)
 ```
-src/
-├── modules/
-│   ├── gcode_parser/      # G-code analysis and manipulation
-│   ├── optimizer/         # Optimization algorithms (ACO, K-means, MOO)
-│   ├── validator/         # Integrity checks (geometric, kinematic)
-│   └── profiles/          # Material and printer profile management
+m3dp_post_process/
+├── main.py                 # FastAPI app with upload/optimize endpoints
+├── gcode_processor.py      # Core: GCodeParser + Optimizer (greedy baseline)
+├── aco_optimizer.py        # ACO travel optimization (30-35% improvement)
+├── bricklayers.py          # Layer-shifting for strength (port from TengerTechnologies)
+├── quality_optimizer.py    # Seam hiding + shell crossing reduction
+└── templates/              # Jinja2 HTML (HTMX-enhanced)
 ```
 
-## G-code Processing Requirements
+**Key Pattern:** Each optimizer (`Optimizer`, `ACOOptimizer`, `BrickLayersOptimizer`, `QualityOptimizer`) returns `OptimizationResult` with segments, travel stats, and metadata dict.
 
-### Critical Integrity Rules
-1. **Never break geometry:** Modified G-code must maintain original object dimensions
-2. **Kinematic safety:** Prevent nozzle collisions with printed parts or frame
-3. **Parameter bounds:** Keep speeds/temps within material-safe ranges
+### Data Flow
+1. **Upload** → `GCodeParser.parse()` → segments (list of `Segment` objects)
+2. **Optimize** → Algorithm-specific optimizer → `OptimizationResult`
+3. **Download** → `Optimizer.to_gcode(segments)` → modified G-code file
 
-### Key G-code Commands
-- **G1 F-code:** Feedrate (speed optimization target)
-- **G0:** Travel moves (path planning optimization)
-- **M104/M109/M140/M190:** Temperature control (cost/quality optimization)
-- **M221:** Flow control (material usage optimization)
-- **G02/G03:** Arc commands (kinematic smoothing for quality)
+### Core Data Structures
+```python
+@dataclass
+class Point: x, y, z, e  # Coordinates + extrusion
 
-### Optimization Objectives & Algorithms
+@dataclass
+class Segment:           # Single G-code move
+    start: Point
+    end: Point
+    type: SegmentType    # EXTRUSION | TRAVEL | RETRACT | Z_HOP
+    speed: float
+    line_number: int
+    original_text: str
 
-| Goal | Target Parameters | Research Algorithm | Expected Outcome |
-|------|------------------|-------------------|------------------|
-| **Speed** | G1 F-code, G0 travel | K-means clustering, ACO/URPP | 24% time reduction |
-| **Cost** | M221 flow, temperatures | K-means, Multi-Objective Evolutionary | 5% material reduction |
-| **Quality** | Feedrate, temp, arc fitting | ANN-based Whale Optimization, ACO | Minimize surface roughness |
-| **Strength** | Infill, orientation, layer height | Multi-Objective Evolution, FEA | Optimize tensile strength |
-
-## Development Workflow
-
-### Development Container
-
-**This project uses a devcontainer for consistent development environments.** The container includes:
-- Python 3.12 with UV pre-installed
-- PostgreSQL (ready to enable when needed)
-- Dev tools (pytest, ruff, mypy)
-- Podman-compatible configuration
-
-To use the devcontainer:
-1. Open project in VS Code
-2. Select "Reopen in Container" when prompted
-3. Dependencies install automatically via `postCreateCommand`
-
-See `.devcontainer/README.md` for detailed setup instructions.
-
-### Python Environment Setup
-
-**This project uses UV for Python environment management.** UV is already installed and configured.
-
-```bash
-# Activate the UV venv (if not already active)
-source .venv/bin/activate  # On macOS/Linux
-
-# Install/sync dependencies with UV
-uv pip install -e ".[dev]"  # Install with dev dependencies
-uv pip sync                  # Sync exact dependencies from lock file
-
-# Run Python scripts with UV
-uv run python script.py      # Ensures correct venv is used
+@dataclass
+class OptimizationResult:
+    segments: list[Segment]
+    original_travel_dist: float
+    optimized_travel_dist: float
+    optimization_type: str
+    metadata: dict        # Algorithm-specific stats (e.g., ACO iterations)
 ```
 
-**Important:** Always use `uv` commands instead of plain `pip` or `python` to ensure the UV-managed environment is properly utilized.
+## Development Environment
+
+### Devcontainer (Podman/Docker)
+- **Python 3.12** + **UV** package manager (pre-installed)
+- PostgreSQL service (currently disabled, ready to enable)
+- **CRITICAL:** Always use `uv` commands, not plain `pip`/`python`
+  ```bash
+  uv pip install -e ".[dev]"   # Install with dev dependencies
+  uv run pytest                # Run tests with correct env
+  uv run uvicorn m3dp_post_process.main:app --reload  # Dev server
+  ```
+
+### SSH Key Forwarding (Git/GitHub)
+- Devcontainer forwards host SSH agent → `/ssh-agent`
+- **After editing `devcontainer.json` SSH mounts**: Must rebuild container (`Ctrl+Shift+P` → "Dev Containers: Rebuild")
+- Test: `ssh -T git@github.com` (should show GitHub username)
+- See `.devcontainer/README.md` for troubleshooting
 
 ### Testing Strategy
-- Unit tests for G-code parser (line-by-line accuracy)
-- Integration tests for full optimization pipelines
-- Validation tests against known-good prints (geometric accuracy)
+- **Unit tests:** Per-algorithm logic (pytest fixtures for sample G-code)
+- **Locations:** `tests/test_parser.py`, `tests/test_aco_optimizer.py`, etc.
+- **Run:** `uv run pytest` (auto-discovers tests/)
+- **Pattern:** Most tests use `sample_gcode` fixtures with minimal G-code strings
 
-### File Organization Conventions
-- Place research papers in `/research/` (already gitignored as PDFs)
-- Strategy documents in `/guide/` (markdown format)
-- Data files (CSV calibrations, test G-code) in `/data/` when created
+## G-code Processing Patterns
 
-## Klipper-Specific Knowledge
+### Parser State Machine (`GCodeParser`)
+```python
+# Modal state tracking (survives across lines)
+self.current_pos = Point(0, 0, 0, 0)      # Absolute position
+self.relative_positioning = False          # G90/G91
+self.relative_extrusion = False            # M82/M83
+self.current_speed = 0.0                   # Last F-code value
 
-This project must understand Klipper firmware conventions:
-- **Pressure Advance:** Extruder-specific physics compensation
-- **Input Shaping:** Resonance frequency tuning for print quality
-- **Rotation Distance:** Stepper calibration formula
-- Klipper G-code commands: `SAVE_CONFIG`, `PID_CALIBRATE`, `QUERY_ENDSTOPS`
-
-Reference the minimal3dp Klipper calibration standards when processing firmware-specific parameters.
-
-## Code Style & Philosophy
-
-### Prompt Efficiency & Cost-Awareness
-
-- **Goal:** Help minimize heavy or expensive model calls and reduce token usage while preserving result quality.
-- **Feasibility:** Copilot can heuristically detect and flag high-cost prompts — those that request:
-  - complete dumps of large files or entire datasets; or
-  - extremely long code reviews (e.g., > 2,000 lines) or multi-file refactors in one prompt; or
-  - requests for full dataset transformations on millions of rows without a sample; or
-  - output of enormous binary blobs or large base64 content.
-- **Actionable behavior:** When Copilot sees such prompts, it should:
-  - politely notify the user that the prompt appears expensive and why (explain the heuristic),
-  - suggest concrete, lower-cost alternatives (split the task into steps, provide a small sample, request a small proof-of-concept, or ask to confirm before proceeding), and
-  - include a succinct example of a more efficient prompt the user can copy/paste.
-- **Example:** If a user says "process 1M rows and return the full CSV", Copilot should recommend returning a small sample + code to run locally, or run an on-disk transformation script that writes a CSV instead of printing it.
-
-### Minimal3dp Principles
-1. **Practicality over elegance:** Code should solve real problems, not demonstrate theoretical purity
-2. **Thoroughness over brevity:** Comprehensive error handling and validation preferred over "clever" shortcuts
-3. **Open-source ethos:** Write code that can be understood, forked, and improved by the community
-
-### Python Conventions
-- Heavy commenting explaining *why*, not just *what*
-- Type hints for all function signatures
-- Explicit is better than implicit (Zen of Python)
-- Validate inputs at boundaries (API endpoints, file uploads)
-
-### Documentation Requirements
-- All algorithms must cite research sources (see `research/Feasibility.md`)
-- Complex mathematical operations need inline LaTeX comments
-- Configuration examples must be tested with real G-code files
-
-## Common Pitfalls to Avoid
-
-1. **Don't assume slicer capabilities:** Most slicers use simple path planning. That's why this tool exists.
-2. **Don't skip validation:** Geometric integrity checks are computationally expensive but mandatory
-3. **Don't hardcode printer limits:** Material-safe ranges vary (PLA ≠ ABS ≠ PETG)
-4. **Don't optimize blindly:** K-means clustering requires historical successful print data
-
-## Integration Points
-
-### Hugo Static Site (minimal3dp.com)
-- Tool will be embedded as `/tools/gcode-optimizer` path
-- Must provide standalone HTML/JS interface (no external build required)
-- Use TailwindCSS for styling consistency with main site
-
-### Amazon Affiliate Integration
-When recommending hardware/materials, use minimal3dp's affiliate disclosure:
-```markdown
-** Links are Amazon Affiliate Links **
+# Parse cycle: _parse_line() → _handle_move() → append Segment
 ```
-Focus on utility-based recommendations (specific tools for specific optimizations).
 
-## External Dependencies & APIs
+**Critical:** Parser handles both absolute (G90) and relative (G91) positioning. Most slicers use G90 (absolute XYZ) + M83 (relative E).
 
-### Research-Validated Libraries
-- **scikit-learn:** K-means clustering implementation
-- **NetworkX:** Graph theory for path planning (ACO/URPP)
-- **NumPy/Pandas:** Numerical analysis and data processing
-- **PyTorch/TensorFlow:** If implementing ANN-based optimization
+### Segment Type Detection Logic
+- **EXTRUSION:** E value increases (relative) or E > prev_E (absolute)
+- **TRAVEL:** XY movement with no E change
+- **RETRACT:** E value decreases (firmware retraction)
+- **Z_HOP:** Z changes without XY movement
 
-### G-code Libraries (Evaluate)
-- Consider existing parsers but be prepared to write custom line-by-line analyzer
-- G-code format is simple but nuanced (modal commands, coordinate systems)
+### Optimization Algorithm Interface
+All optimizers follow this contract:
+```python
+class SomeOptimizer:
+    def __init__(self, segments: List[Segment], config: OptConfig):
+        self.segments = segments
+        self.config = config or OptConfig()
+    
+    def optimize(self) -> OptimizationResult:
+        # 1. Group segments (by layer, part, etc.)
+        # 2. Apply algorithm (reorder, modify, insert)
+        # 3. Reconstruct G-code segments
+        # 4. Return OptimizationResult with stats
+```
 
-## Critical Questions to Ask
+### Travel Optimization Strategy (Greedy vs ACO)
+1. **Greedy** (`Optimizer.optimize_travel_greedy()`):
+   - Groups extrusion segments into "blocks"
+   - Sorts blocks by nearest-neighbor distance
+   - Inserts travel moves between blocks
+   - Fast, baseline algorithm (~15% improvement)
 
-Before implementing any optimization algorithm:
-1. What is the validation strategy? (How do we prove it didn't break the print?)
-2. What are the material/printer constraints? (Where does the data come from?)
-3. What is the computational budget? (Can this run in browser vs. server?)
-4. What is the failure mode? (What happens if optimization produces invalid G-code?)
+2. **ACO** (`ACOOptimizer.optimize()`):
+   - Processes each layer independently
+   - TSP for part visiting sequence
+   - URPP for segment sequence within parts
+   - Pheromone-based learning (8 ants × 8 iterations default)
+   - Expected 30-35% improvement over greedy
 
-## Getting Started Checklist
+### BrickLayers Implementation Details
+- **Port from:** `TengerTechnologies/Bricklayers` (Python script)
+- **Algorithm:** Detects internal perimeter blocks via slicer comments (`;TYPE:Perimeter` or `;TYPE:Inner wall`)
+- **Shifting:** Odd-numbered perimeter blocks get `Z + layer_height*0.5` offset
+- **Edge cases:** First/last layer get E-value multipliers (1.5x and 0.5x) for adhesion
+- **Output:** Writes G-code directly (does not use `Segment` reconstruction)
 
-For new developers or AI agents:
-1. Read `/research/Feasibility.md` for algorithm context
-2. Review `/guide/Minimal 3DP Development Strategy Report.md` for architecture
-3. Check `/guide/MINIMAL3DP_APP_GUIDE.md` for deployment standards
-4. Examine `pyproject.toml` for current dependency state
-5. Create sample G-code test fixtures before implementing parsers
+## Development Commands & Workflows
 
-## Success Metrics
+### Running the App
+```bash
+# Development server (hot reload)
+uv run uvicorn m3dp_post_process.main:app --reload --host 0.0.0.0 --port 8000
 
-A successful implementation will:
-- Process real-world slicer G-code (Cura, OrcaSlicer, PrusaSlicer)
-- Achieve measurable optimization (time/cost/quality) without visual defects
-- Pass geometric integrity validation (Hausdorff distance < 0.1mm)
-- Integrate seamlessly into minimal3dp.com tooling ecosystem
-- Provide clear, educational output (explain *why* each change was made)
+# Production mode
+uv run uvicorn m3dp_post_process.main:app --host 0.0.0.0 --port 8000
 
----
+# Docker Compose (includes PostgreSQL, currently unused)
+podman-compose up --build
+```
 
-**Remember:** This tool's goal isn't just to optimize prints—it's to *educate users* about the optimization process. The brand's "Detailed (And Boring)" philosophy means we show our work, cite our sources, and explain trade-offs.
+### Testing
+```bash
+# Run all tests
+uv run pytest
+
+# Run specific test file
+uv run pytest tests/test_aco_optimizer.py
+
+# Run with coverage
+uv run pytest --cov=m3dp_post_process --cov-report=term-missing
+
+# Watch mode (requires pytest-watch)
+uv run ptw
+```
+
+### Code Quality
+```bash
+# Lint with Ruff
+ruff check .                    # Check for issues
+ruff check --fix .              # Auto-fix issues
+
+# Type checking
+mypy m3dp_post_process/         # Type check main package
+
+# Format code
+ruff format .                   # Auto-format all Python files
+```
+
+## FastAPI Endpoint Architecture
+
+### Current Routes (`main.py`)
+1. **`GET /`** → `index.html` template (upload form)
+2. **`POST /upload`** → Parses G-code, returns upload success partial (HTMX)
+3. **`POST /optimize`** → Runs optimization pipeline, returns results partial (HTMX)
+4. **`GET /download/{filename}`** → Serves optimized G-code file
+5. **`GET /files/{filename}`** → Serves uploaded G-code file
+
+### Form Parameter Flow (`/optimize`)
+```python
+optimization_type: "travel" | "bricklayers"
+algorithm: "greedy" | "aco"               # For travel optimization
+layer_height: float                       # BrickLayers param
+num_ants: int, num_iterations: int        # ACO params
+seam_hiding: bool, seam_strategy: str     # Quality params
+reduce_crossings: bool                    # Quality param
+```
+
+### HTMX Pattern
+- Templates return HTML partials (not full pages)
+- `templates/index.html` → Main upload form
+- `templates/partials/upload_success.html` → Shows parsed segment count
+- `templates/partials/optimization_result.html` → Shows before/after stats + download link
+- No JavaScript framework needed (HTMX handles DOM swapping)
+
+## Testing Conventions
+
+### Fixture Pattern
+```python
+@pytest.fixture
+def sample_gcode():
+    """Minimal G-code string for testing parser."""
+    return """
+G90  ; Absolute positioning
+M83  ; Relative extrusion
+G1 X10 Y10 E5 F3000
+G1 X20 Y20 E10
+G0 X30 Y30  ; Travel move
+"""
+
+# Usage in test
+def test_parser(sample_gcode):
+    parser = GCodeParser(content=sample_gcode)
+    parser.parse()
+    assert len(parser.segments) > 0
+```
+
+### Test File Structure
+- `test_parser.py` → G-code parsing edge cases (G90/G91, M82/M83)
+- `test_optimizer.py` → Greedy algorithm logic
+- `test_aco_optimizer.py` → ACO algorithm behavior
+- `test_bricklayers.py` → Layer shifting logic
+- `test_quality_optimizer.py` → Seam hiding strategies
+- `test_main.py` → FastAPI endpoint integration tests
+
+## File Organization & Git Patterns
+
+```
+/workspace/
+├── m3dp_post_process/        # Main package (flat structure, NOT nested src/)
+├── tests/                    # Parallel test structure
+├── research/                 # PDFs gitignored, .md tracked
+├── guide/                    # Strategy/architecture docs
+├── g-code/                   # Sample files for manual testing
+├── uploads/                  # Runtime: user uploads (gitignored)
+├── outputs/                  # Runtime: optimized files (gitignored)
+└── .devcontainer/            # Container config + README
+```
+
+**Git ignore pattern:** Research PDFs ignored (large files), markdown conversions tracked.
+
+## Common Pitfalls & Solutions
+
+### 1. Parser State Leakage
+**Problem:** Reusing `GCodeParser` instance without resetting state  
+**Solution:** Create new parser per file: `parser = GCodeParser(file_path=path)`
+
+### 2. ACO Convergence Issues
+**Problem:** ACO produces worse results than greedy  
+**Solution:** Tune `num_ants` (8-16) and `num_iterations` (5-20). More ants = better exploration, more iterations = better convergence.
+
+### 3. BrickLayers Slicer Compatibility
+**Problem:** Slicer doesn't use `;TYPE:` comments  
+**Solution:** BrickLayers requires OrcaSlicer, PrusaSlicer, or Cura (all emit type comments). Won't work with Simplify3D or older slicers.
+
+### 4. UV Environment Issues
+**Problem:** `python` command uses system Python, not UV venv  
+**Solution:** Always prefix with `uv run python` or activate venv first
+
+## Research Integration
+
+### Key Papers (in `/research/`)
+- `Fok - ACO Based Tool Path Optimizer.md` → ACO algorithm foundation
+- `Feasibility.md` → Literature review of optimization strategies
+- `FullControl-GCode-Designer-Author-Version-3.md` → G-code manipulation techniques
+- Papers prefixed with `IMECE2024_143962` → FEA-based strength optimization
+
+### Citation Pattern in Code
+```python
+"""
+Ant Colony Optimization for G-code toolpath optimization.
+
+Based on research by Fok et al. (2018):
+"An ACO-Based Tool-Path Optimizer for 3D Printing Applications"
+
+Expected improvement: 30-35% reduction in extrusionless travel.
+"""
+```
+
+## Future Architecture Considerations
+
+### Database Integration (Currently Disabled)
+- PostgreSQL service exists in `docker-compose.yml` but unused
+- Planned for: User profiles, optimization history, material libraries
+- Enable by: Uncommenting `depends_on: db` in `docker-compose.yml`
+
+### Modular Monolith Evolution
+Current flat structure will refactor to:
+```
+m3dp_post_process/
+├── core/
+│   ├── parser.py
+│   └── models.py
+├── optimizers/
+│   ├── travel.py      # Greedy + ACO
+│   ├── bricklayers.py
+│   └── quality.py
+└── api/
+    └── routes.py
+```
+
+**When to refactor:** After 3+ new optimizers added (avoid premature abstraction)
