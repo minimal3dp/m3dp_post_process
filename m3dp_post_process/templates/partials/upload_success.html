@@ -66,10 +66,40 @@
             <h4 class="text-sm font-semibold text-gray-700 mb-3">Travel Optimization Settings</h4>
             <div class="mb-3">
                 <label class="block text-xs text-gray-600 mb-1">Algorithm</label>
-                <select name="algorithm" class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                <select name="algorithm" id="algorithm-select" class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    onchange="document.getElementById('aco-variant-config').style.display = this.value === 'aco' ? 'block' : 'none'">
                     <option value="greedy">Greedy (Fast, ~15% improvement)</option>
                     <option value="aco">Ant Colony Optimization (Best, 30-35% improvement)</option>
                 </select>
+            </div>
+
+            <!-- ACO Variant Selection (shown only when ACO is selected) -->
+            <div id="aco-variant-config" class="mb-3 p-3 bg-white rounded border border-blue-200" style="display: none;">
+                <label class="block text-xs text-gray-700 font-semibold mb-2">🐜 ACO Variant</label>
+                <div class="space-y-2">
+                    <label class="flex items-start">
+                        <input type="radio" name="aco_variant" value="original" class="mr-2 mt-0.5">
+                        <div>
+                            <span class="text-xs font-medium">Original AS</span>
+                            <p class="text-xs text-gray-500">Basic Ant System (Dorigo 1992) - Baseline algorithm</p>
+                        </div>
+                    </label>
+                    <label class="flex items-start">
+                        <input type="radio" name="aco_variant" value="mmas" checked class="mr-2 mt-0.5">
+                        <div>
+                            <span class="text-xs font-medium">MMAS ⭐ Recommended</span>
+                            <p class="text-xs text-gray-500">Max-Min Ant System - Pheromone bounds + best-ant update</p>
+                        </div>
+                    </label>
+                    <label class="flex items-start">
+                        <input type="radio" name="aco_variant" value="acs" class="mr-2 mt-0.5">
+                        <div>
+                            <span class="text-xs font-medium">ACS (Experimental)</span>
+                            <p class="text-xs text-gray-500">Ant Colony System - High exploitation with pseudo-random rule</p>
+                        </div>
+                    </label>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">💡 Use MMAS for best results. Original AS for research comparison.</p>
             </div>
 
         </div>

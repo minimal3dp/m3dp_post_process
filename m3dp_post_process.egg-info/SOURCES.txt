@@ -18,3 +18,4 @@ tests/test_metrics.py
 tests/test_optimizer.py
 tests/test_parser.py
 tests/test_quality_optimizer.py
+tests/test_segment_integration.py

@@ -112,7 +112,7 @@ def is_travel_segment(seg: Segment) -> bool:
 
 @dataclass
 class ACOConfig:
-    """Configuration for Ant Colony Optimization with MMAS and performance enhancements."""
+    """Configuration for Ant Colony Optimization with multiple algorithm variants."""
 
     num_ants: int = 8
     """Number of ants per iteration (parallel searches)"""
@@ -135,9 +135,13 @@ class ACOConfig:
     initial_pheromone: float = 0.1
     """Initial pheromone level on all edges"""
 
+    # Algorithm variant selection
+    aco_variant: str = "mmas"
+    """ACO algorithm variant: 'original' (basic AS), 'mmas' (Max-Min Ant System), 'acs' (Ant Colony System)"""
+
     # MMAS (Max-Min Ant System) parameters
     use_mmas: bool = True
-    """Enable Max-Min Ant System with pheromone bounds"""
+    """Enable Max-Min Ant System with pheromone bounds (deprecated: use aco_variant='mmas')"""
 
     # Candidate list parameters
     use_candidate_lists: bool = True
@@ -193,6 +197,20 @@ class ACOOptimizer:
         self.config = config or ACOConfig()
         self.original_travel_dist = 0.0
         self.optimized_travel_dist = 0.0
+
+        # Map variant string to config flags for backward compatibility
+        if self.config.aco_variant == "original":
+            self.config.use_mmas = False
+            self.config.use_candidate_lists = False
+            self.config.enable_early_termination = False
+            self.config.q0 = 0.0  # Pure probabilistic selection in original AS
+        elif self.config.aco_variant == "mmas":
+            self.config.use_mmas = True
+            # Keep other enhancements as configured
+        elif self.config.aco_variant == "acs":
+            self.config.use_mmas = False  # ACS doesn't use MMAS bounds
+            self.config.q0 = 0.9  # High exploitation in ACS
+            # ACS uses local pheromone update (not implemented yet)
 
         # Group segments by layer
         self.layers = self._group_by_layer()
@@ -276,6 +294,7 @@ class ACOOptimizer:
             optimization_type="Travel (Speed) - ACO",
             metadata={
                 "algorithm": "aco",
+                                "aco_variant": self.config.aco_variant,
                 "num_ants": self.config.num_ants,
                 "num_iterations": self.config.num_iterations,
                 "iterations_completed": self.iterations_completed,

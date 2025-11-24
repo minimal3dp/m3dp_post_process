@@ -62,6 +62,7 @@ async def optimize_file(
     filename: str = Form(...),
     optimization_type: str = Form("travel"),  # "travel" or "bricklayers"
     algorithm: str = Form("greedy"),  # "greedy" or "aco" (for travel optimization)
+        aco_variant: str = Form("mmas"),  # "original", "mmas", or "acs" (for ACO only)
     layer_height: float = Form(0.2),  # BrickLayers parameter
     extrusion_multiplier: float = Form(1.0),  # BrickLayers parameter
     # ACO parameters
@@ -75,7 +76,7 @@ async def optimize_file(
     output_filename = f"optimized_{filename}"
     output_path = OUTPUT_DIR / output_filename
 
-    logger.info(f"🚀 Starting optimization: type={optimization_type}, algorithm={algorithm}, file={filename}")
+    logger.info(f"🚀 Starting optimization: type={optimization_type}, algorithm={algorithm}, variant={aco_variant if algorithm == 'aco' else 'N/A'}, file={filename}")
     
     # Parse
     parser = GCodeParser(file_path=input_path)
@@ -108,10 +109,11 @@ async def optimize_file(
         logger.info(f"🛣️  Starting travel optimization with {algorithm} algorithm...")
         # Choose algorithm
         if algorithm == "aco":
-            logger.info(f"🐜 ACO config: {num_ants} ants × {num_iterations} iterations")
+            logger.info(f"🐜 ACO config: variant={aco_variant}, {num_ants} ants × {num_iterations} iterations")
             from .aco_optimizer import ACOOptimizer, ACOConfig
             
             aco_config = ACOConfig(
+                                aco_variant=aco_variant,
                 num_ants=num_ants,
                 num_iterations=num_iterations
             )

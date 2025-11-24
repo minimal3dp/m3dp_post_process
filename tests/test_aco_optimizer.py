@@ -35,6 +35,7 @@ def sample_segments():
 def test_aco_config_defaults():
     """Test ACO configuration defaults."""
     config = ACOConfig()
+    assert config.aco_variant == "mmas"
     
     assert config.num_ants == 8
     assert config.num_iterations == 8
@@ -43,6 +44,9 @@ def test_aco_config_defaults():
     assert config.rho == 0.5
     assert config.q0 == 0.9
     assert config.initial_pheromone == 0.1
+    assert config.use_mmas is True
+    assert config.use_candidate_lists is True
+    assert config.enable_early_termination is True
 
 
 def test_aco_config_custom():
@@ -71,6 +75,32 @@ def test_aco_optimizer_initialization(sample_segments):
     assert len(optimizer.segments) == 7
     assert len(optimizer.layers) == 2  # Two Z heights
     assert optimizer.iterations_completed == 0
+
+
+def test_aco_original_variant_disables_mmas(sample_segments):
+    """Original variant should disable MMAS and enhancements."""
+    config = ACOConfig(aco_variant="original")
+    optimizer = ACOOptimizer(sample_segments, config)
+
+    assert optimizer.config.use_mmas is False
+    assert optimizer.config.use_candidate_lists is False
+    assert optimizer.config.enable_early_termination is False
+    assert optimizer.config.q0 == 0.0
+
+
+def test_aco_mmas_variant_enables_mmas(sample_segments):
+    """MMAS variant should enable MMAS."""
+    config = ACOConfig(aco_variant="mmas")
+    optimizer = ACOOptimizer(sample_segments, config)
+
+    assert optimizer.config.use_mmas is True
+
+
+def test_aco_variant_reflected_in_metadata(sample_segments):
+    """Metadata should include the selected ACO variant."""
+    optimizer = ACOOptimizer(sample_segments, ACOConfig(aco_variant="original", num_iterations=1, num_ants=2))
+    result = optimizer.optimize()
+    assert result.metadata.get("aco_variant") == "original"
 
 
 def test_aco_optimize(sample_segments):

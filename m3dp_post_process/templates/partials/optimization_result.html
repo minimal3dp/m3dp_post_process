@@ -126,8 +126,15 @@
         {% if metadata and metadata.get('algorithm') == 'aco' %}
         <!-- ACO specific stats -->
         <div class="bg-white p-3 rounded shadow-sm col-span-2">
-            <p class="text-xs text-gray-500 uppercase">🐜 ACO Algorithm Statistics</p>
+            <p class="text-xs text-gray-500 uppercase">🐜 ACO Algorithm Details</p>
             <p class="text-sm text-gray-700">
+                                {% if metadata.get('aco_variant') %}
+                                <span class="font-semibold text-blue-600">
+                                    {% if metadata.aco_variant == 'original' %}Original AS{% endif %}
+                                    {% if metadata.aco_variant == 'mmas' %}MMAS{% endif %}
+                                    {% if metadata.aco_variant == 'acs' %}ACS{% endif %}
+                                </span> •
+                                {% endif %}
                 {{ metadata.num_ants }} ants × {{ metadata.num_iterations }} iterations
                 ({{ "%.1f"|format(metadata.processing_time_s) }}s processing)
             </p>
