@@ -36,3 +36,11 @@ INFO:     Finished server process [2560]
 INFO:     Started server process [3138]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'tests/test_metrics.py', 'm3dp_post_process/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [3138]
+INFO:     Started server process [5425]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
