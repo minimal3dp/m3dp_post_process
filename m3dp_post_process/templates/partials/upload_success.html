@@ -67,9 +67,19 @@
             <div class="mb-3">
                 <label class="block text-xs text-gray-600 mb-1">Algorithm</label>
                 <select name="algorithm" id="algorithm-select" class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                    onchange="document.getElementById('aco-variant-config').style.display = this.value === 'aco' ? 'block' : 'none'">
+                    onchange="
+                        const showAco = this.value === 'aco';
+                        document.getElementById('aco-variant-config').style.display = showAco ? 'block' : 'none';
+                        if (showAco) {
+                          const selected = this.options[this.selectedIndex];
+                          const variant = selected.getAttribute('data-variant') || 'mmas';
+                          const radios = document.querySelectorAll('input[name=\'aco_variant\']');
+                          radios.forEach(r => r.checked = (r.value === variant));
+                        }
+                    ">
                     <option value="greedy">Greedy (Fast, ~15% improvement)</option>
-                    <option value="aco">Ant Colony Optimization (Best, 30-35% improvement)</option>
+                    <option value="aco" data-variant="original">Original Ant Colony Optimization</option>
+                    <option value="aco" data-variant="mmas" selected>MMAS Ant Colony Optimization (Recommended)</option>
                 </select>
             </div>
 
@@ -103,6 +113,15 @@
             </div>
 
         </div>
+
+        <script>
+        // Initialize visibility and default variant on load
+        (function() {
+          const select = document.getElementById('algorithm-select');
+          const event = new Event('change');
+          select.dispatchEvent(event);
+        })();
+        </script>
 
         <!-- BrickLayers Configuration (hidden by default) -->
         <div id="bricklayers-config" class="mb-4 p-4 bg-gray-50 rounded border border-gray-200" style="display: none;">
