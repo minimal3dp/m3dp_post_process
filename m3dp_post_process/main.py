@@ -47,8 +47,16 @@ async def optimize_file(
     request: Request,
     filename: str = Form(...),
     optimization_type: str = Form("travel"),  # "travel" or "bricklayers"
+    algorithm: str = Form("greedy"),  # "greedy" or "aco" (for travel optimization)
     layer_height: float = Form(0.2),  # BrickLayers parameter
     extrusion_multiplier: float = Form(1.0),  # BrickLayers parameter
+    # ACO parameters
+    num_ants: int = Form(8),
+    num_iterations: int = Form(8),
+    # Quality parameters
+    seam_hiding: bool = Form(False),
+    seam_strategy: str = Form("random"),  # "random", "aligned", "rear"
+    reduce_crossings: bool = Form(True),
 ):
     input_path = UPLOAD_DIR / filename
     output_filename = f"optimized_{filename}"
@@ -71,9 +79,44 @@ async def optimize_file(
         
         # File is already written by optimizer
         gcode_content = None
-    else:  # Default to travel optimization
-        optimizer = Optimizer(parser.segments)
-        result = optimizer.optimize_travel_greedy()
+    else:  # Travel optimization
+        # Choose algorithm
+        if algorithm == "aco":
+            from .aco_optimizer import ACOOptimizer, ACOConfig
+            
+            aco_config = ACOConfig(
+                num_ants=num_ants,
+                num_iterations=num_iterations
+            )
+            optimizer = ACOOptimizer(parser.segments, aco_config)
+            result = optimizer.optimize()
+        else:  # greedy
+            optimizer = Optimizer(parser.segments)
+            result = optimizer.optimize_travel_greedy()
+        
+        # Apply quality optimizations if requested
+        if seam_hiding or reduce_crossings:
+            from .quality_optimizer import QualityOptimizer, QualityConfig, SeamStrategy
+            
+            # Map string to enum
+            seam_strat = SeamStrategy.DISABLED
+            if seam_hiding:
+                seam_strat = {
+                    "random": SeamStrategy.RANDOM,
+                    "aligned": SeamStrategy.ALIGNED,
+                    "rear": SeamStrategy.REAR,
+                }.get(seam_strategy, SeamStrategy.RANDOM)
+            
+            quality_config = QualityConfig(
+                seam_strategy=seam_strat,
+                reduce_shell_crossings=reduce_crossings
+            )
+            quality_opt = QualityOptimizer(result.segments, quality_config)
+            quality_result = quality_opt.optimize()
+            
+            # Merge metadata
+            result.metadata.update(quality_result.metadata)
+            result.segments = quality_result.segments
         
         # Generate G-code for travel optimization
         gcode_content = optimizer.to_gcode(result.segments)
