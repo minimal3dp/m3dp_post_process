@@ -12,7 +12,7 @@ import re
 import logging
 from dataclasses import dataclass
 
-from .gcode_processor import GCodeParser, Segment, SegmentType, OptimizationResult
+from .gcode_processor import GCodeParser, Segment, SegmentType, OptimizationResult, Optimizer
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +64,19 @@ class BrickLayersOptimizer:
         with open(output_path, 'w') as f:
             f.writelines(modified_lines)
 
+        # Parse output file to calculate metrics
+        try:
+            parser = GCodeParser(file_path=output_path)
+            parser.parse()
+            temp_optimizer = Optimizer(parser.segments)
+            print_time = temp_optimizer._calculate_print_time(parser.segments)
+            material_mm, material_grams = temp_optimizer._calculate_material_usage(parser.segments)
+        except Exception as e:
+            logger.warning(f"Could not calculate time/material metrics: {e}")
+            print_time = None
+            material_mm = None
+            material_grams = None
+
         # Calculate statistics
         total_layers = self._count_layers(gcode_lines)
         shifted_blocks = self._count_shifted_blocks(modified_lines)
@@ -81,6 +94,9 @@ class BrickLayersOptimizer:
                 "shifted_blocks": shifted_blocks,
                 "z_shift_mm": self.z_shift,
             },
+            print_time_seconds=print_time,
+            material_used_mm=material_mm,
+            material_used_grams=material_grams,
         )
 
     def _process_gcode(self, lines: list[str]) -> list[str]:

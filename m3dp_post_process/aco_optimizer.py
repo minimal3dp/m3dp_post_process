@@ -23,7 +23,7 @@ import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 import math
 
-from .gcode_processor import Segment, SegmentType, OptimizationResult
+from .gcode_processor import Segment, SegmentType, OptimizationResult, Optimizer
 
 
 # Helper functions to work with Segment structure

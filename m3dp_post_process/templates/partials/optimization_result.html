@@ -7,7 +7,7 @@
         <h3 class="text-xl font-bold text-gray-900 mt-2">Optimization Complete!</h3>
     </div>
 
-    <div class="grid grid-cols-2 gap-4 mb-6 text-left max-w-sm mx-auto">
+    <div class="grid grid-cols-2 gap-4 mb-6 text-left max-w-2xl mx-auto">
         <div class="bg-white p-3 rounded shadow-sm col-span-2">
             <p class="text-xs text-gray-500 uppercase">Optimization Goal</p>
             <p class="text-lg font-bold text-blue-600">{{ optimization_type }}</p>
@@ -23,7 +23,7 @@
             <p class="text-xs text-gray-500 uppercase">Shifted Blocks</p>
             <p class="text-lg font-bold text-green-600">{{ metadata.shifted_blocks }}</p>
         </div>
-        <div class="bg-white p-3 rounded shadow-sm col-span-2">
+        <div class="bg-white p-3 rounded shadow-sm">
             <p class="text-xs text-gray-500 uppercase">Z-Shift Amount</p>
             <p class="text-lg font-bold text-purple-600">{{ "%.3f"|format(metadata.z_shift_mm) }} mm</p>
         </div>
@@ -36,6 +36,55 @@
         <div class="bg-white p-3 rounded shadow-sm">
             <p class="text-xs text-gray-500 uppercase">Saved Travel</p>
             <p class="text-lg font-bold text-green-600">{{ saved_travel }} mm</p>
+        </div>
+        {% endif %}
+
+        <!-- Print Time & Material Usage (always shown when available) -->
+        {% if print_time_seconds %}
+        <div class="bg-white p-3 rounded shadow-sm">
+            <p class="text-xs text-gray-500 uppercase">Estimated Print Time</p>
+            <p class="text-lg font-bold text-indigo-600">
+                {% if print_time_seconds >= 3600 %}
+                    {{ "%d"|format(print_time_seconds // 3600) }}h {{ "%02d"|format((print_time_seconds % 3600) // 60) }}m
+                {% else %}
+                    {{ "%d"|format(print_time_seconds // 60) }} min
+                {% endif %}
+            </p>
+        </div>
+        {% endif %}
+
+        {% if material_used_mm %}
+        <div class="bg-white p-3 rounded shadow-sm">
+            <p class="text-xs text-gray-500 uppercase">Filament Used</p>
+            <p class="text-lg font-bold text-orange-600">
+                {{ "%.1f"|format(material_used_mm / 1000) }} m
+                {% if material_used_grams %}
+                <span class="text-sm text-gray-500">(~{{ "%.1f"|format(material_used_grams) }}g)</span>
+                {% endif %}
+            </p>
+        </div>
+        {% endif %}
+
+        {% if metadata and metadata.get('algorithm') == 'aco' %}
+        <!-- ACO specific stats -->
+        <div class="bg-white p-3 rounded shadow-sm col-span-2">
+            <p class="text-xs text-gray-500 uppercase">ACO Statistics</p>
+            <p class="text-sm text-gray-700">
+                {{ metadata.num_ants }} ants × {{ metadata.num_iterations }} iterations
+                ({{ "%.1f"|format(metadata.processing_time_s) }}s processing)
+            </p>
+        </div>
+        {% endif %}
+
+        {% if metadata and metadata.get('seam_strategy') %}
+        <!-- Quality optimizer stats -->
+        <div class="bg-white p-3 rounded shadow-sm">
+            <p class="text-xs text-gray-500 uppercase">Seam Strategy</p>
+            <p class="text-lg font-bold text-purple-600">{{ metadata.seam_strategy|title }}</p>
+        </div>
+        <div class="bg-white p-3 rounded shadow-sm">
+            <p class="text-xs text-gray-500 uppercase">Seams Optimized</p>
+            <p class="text-lg font-bold text-green-600">{{ metadata.seams_optimized }}</p>
         </div>
         {% endif %}
     </div>

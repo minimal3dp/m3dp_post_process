@@ -169,6 +169,11 @@ class OptimizationResult:
     optimized_travel_dist: float
     optimization_type: str
     metadata: dict | None = None  # Optional metadata for optimization-specific stats
+    print_time_seconds: float | None = None  # Estimated print time in seconds
+    material_used_mm: float | None = None  # Material extruded in mm
+    material_used_grams: float | None = None  # Material used in grams (approximate)
+
+    metadata: dict | None = None  # Optional metadata for optimization-specific stats
 
 
 class Optimizer:
@@ -184,6 +189,63 @@ class Optimizer:
             if seg.type == SegmentType.TRAVEL:
                 total += self._calculate_distance(seg.start, seg.end)
         return total
+
+    def _calculate_print_time(self, segments: list[Segment]) -> float:
+        """
+        Calculate estimated print time in seconds.
+        
+        Time = Distance / Speed
+        Speed in G-code is in mm/min, convert to mm/s for calculation.
+        """
+        total_seconds = 0.0
+        
+        for seg in segments:
+            if seg.speed > 0:
+                # Calculate distance
+                dx = seg.end.x - seg.start.x
+                dy = seg.end.y - seg.start.y
+                dz = seg.end.z - seg.start.z
+                distance = np.sqrt(dx**2 + dy**2 + dz**2)
+                
+                # Convert speed from mm/min to mm/s
+                speed_mm_per_sec = seg.speed / 60.0
+                
+                # Time = Distance / Speed
+                if speed_mm_per_sec > 0:
+                    total_seconds += distance / speed_mm_per_sec
+        
+        return total_seconds
+    
+    def _calculate_material_usage(self, segments: list[Segment], filament_diameter: float = 1.75) -> tuple[float, float]:
+        """
+        Calculate material usage from extrusion values.
+        
+        Args:
+            segments: List of G-code segments
+            filament_diameter: Filament diameter in mm (default 1.75mm PLA)
+        
+        Returns:
+            tuple: (total_extrusion_mm, approximate_weight_grams)
+        """
+        total_extrusion_mm = 0.0
+        
+        for seg in segments:
+            if seg.type == SegmentType.EXTRUSION:
+                # E value difference is the amount of filament extruded
+                e_diff = seg.end.e - seg.start.e
+                if e_diff > 0:  # Only count positive extrusion
+                    total_extrusion_mm += e_diff
+        
+        # Approximate weight calculation
+        # Volume = π * r² * length
+        # Weight = volume * density
+        # PLA density ≈ 1.24 g/cm³
+        radius_mm = filament_diameter / 2.0
+        volume_mm3 = np.pi * (radius_mm ** 2) * total_extrusion_mm
+        volume_cm3 = volume_mm3 / 1000.0  # Convert mm³ to cm³
+        weight_grams = volume_cm3 * 1.24  # PLA density
+        
+        return total_extrusion_mm, weight_grams
 
     def optimize_travel_greedy(self) -> OptimizationResult:
         """
@@ -262,11 +324,18 @@ class Optimizer:
 
         optimized_travel = self._calculate_total_travel(new_segments)
 
+        # Calculate print time and material usage
+        print_time = self._calculate_print_time(new_segments)
+        material_mm, material_grams = self._calculate_material_usage(new_segments)
+        
         return OptimizationResult(
             segments=new_segments,
             original_travel_dist=original_travel,
             optimized_travel_dist=optimized_travel,
             optimization_type="Travel (Speed)",
+            print_time_seconds=print_time,
+            material_used_mm=material_mm,
+            material_used_grams=material_grams,
         )
 
     def to_gcode(self, segments: list[Segment]) -> str:

@@ -142,6 +142,9 @@ async def optimize_file(
             "optimized_travel": f"{result.optimized_travel_dist:.2f}",
             "saved_travel": f"{result.original_travel_dist - result.optimized_travel_dist:.2f}",
             "metadata": result.metadata,
+            "print_time_seconds": result.print_time_seconds,
+            "material_used_mm": result.material_used_mm,
+            "material_used_grams": result.material_used_grams,
         },
     )
 
