@@ -1,19 +1,20 @@
 """Tests for ACO optimizer."""
 
 import pytest
-from m3dp_post_process.aco_optimizer import ACOOptimizer, ACOConfig
-from m3dp_post_process.gcode_processor import Segment, Point, SegmentType
+
+from m3dp_post_process.aco_optimizer import ACOConfig, ACOOptimizer
+from m3dp_post_process.gcode_processor import Point, Segment, SegmentType
 
 
 def create_segment(x, y, z, e, seg_type=SegmentType.EXTRUSION, text=""):
     """Helper to create a segment with start and end points."""
     return Segment(
-        start=Point(x=x-1 if x > 0 else 0, y=y, z=z, e=e-0.1 if e > 0 else 0),
+        start=Point(x=x - 1 if x > 0 else 0, y=y, z=z, e=e - 0.1 if e > 0 else 0),
         end=Point(x=x, y=y, z=z, e=e),
         type=seg_type,
         speed=1800.0,
         line_number=0,
-        original_text=text
+        original_text=text,
     )
 
 
@@ -36,7 +37,7 @@ def test_aco_config_defaults():
     """Test ACO configuration defaults."""
     config = ACOConfig()
     assert config.aco_variant == "mmas"
-    
+
     assert config.num_ants == 8
     assert config.num_iterations == 8
     assert config.alpha == 1.0
@@ -51,14 +52,8 @@ def test_aco_config_defaults():
 
 def test_aco_config_custom():
     """Test ACO configuration with custom values."""
-    config = ACOConfig(
-        num_ants=16,
-        num_iterations=12,
-        alpha=2.0,
-        beta=3.0,
-        rho=0.7
-    )
-    
+    config = ACOConfig(num_ants=16, num_iterations=12, alpha=2.0, beta=3.0, rho=0.7)
+
     assert config.num_ants == 16
     assert config.num_iterations == 12
     assert config.alpha == 2.0
@@ -70,7 +65,7 @@ def test_aco_optimizer_initialization(sample_segments):
     """Test ACO optimizer initialization."""
     config = ACOConfig()
     optimizer = ACOOptimizer(sample_segments, config)
-    
+
     assert optimizer.config.num_ants == 8
     assert len(optimizer.segments) == 7
     assert len(optimizer.layers) == 2  # Two Z heights
@@ -98,7 +93,9 @@ def test_aco_mmas_variant_enables_mmas(sample_segments):
 
 def test_aco_variant_reflected_in_metadata(sample_segments):
     """Metadata should include the selected ACO variant."""
-    optimizer = ACOOptimizer(sample_segments, ACOConfig(aco_variant="original", num_iterations=1, num_ants=2))
+    optimizer = ACOOptimizer(
+        sample_segments, ACOConfig(aco_variant="original", num_iterations=1, num_ants=2)
+    )
     result = optimizer.optimize()
     assert result.metadata.get("aco_variant") == "original"
 
@@ -107,7 +104,7 @@ def test_aco_optimize(sample_segments):
     """Test ACO optimization returns valid result."""
     optimizer = ACOOptimizer(sample_segments)
     result = optimizer.optimize()
-    
+
     assert result.optimization_type == "Travel (Speed) - ACO"
     assert "algorithm" in result.metadata
     assert result.metadata["algorithm"] == "aco"
@@ -122,7 +119,7 @@ def test_aco_group_by_layer(sample_segments):
     """Test layer grouping."""
     optimizer = ACOOptimizer(sample_segments)
     layers = optimizer.layers
-    
+
     assert len(layers) == 2
     assert 0.2 in layers
     assert 0.4 in layers
@@ -133,15 +130,15 @@ def test_aco_group_by_layer(sample_segments):
 def test_aco_distance_calculation():
     """Test distance calculation between points."""
     optimizer = ACOOptimizer([])
-    
+
     # Test horizontal distance
     dist = optimizer._distance((0, 0), (10, 0))
     assert abs(dist - 10.0) < 0.001
-    
+
     # Test vertical distance
     dist = optimizer._distance((0, 0), (0, 10))
     assert abs(dist - 10.0) < 0.001
-    
+
     # Test diagonal distance
     dist = optimizer._distance((0, 0), (3, 4))
     assert abs(dist - 5.0) < 0.001
@@ -150,10 +147,10 @@ def test_aco_distance_calculation():
 def test_aco_travel_distance_calculation(sample_segments):
     """Test travel distance calculation."""
     optimizer = ACOOptimizer(sample_segments)
-    
+
     # Calculate travel distance for original segments
     travel_dist = optimizer._calculate_travel_distance(sample_segments)
-    
+
     # Should have at least one travel move (segment 3)
     assert travel_dist > 0
 
@@ -161,12 +158,12 @@ def test_aco_travel_distance_calculation(sample_segments):
 def test_aco_tsp_solving():
     """Test TSP solving with ACO."""
     points = [(0, 0), (10, 0), (10, 10), (0, 10)]
-    
+
     config = ACOConfig(num_ants=4, num_iterations=4)
     optimizer = ACOOptimizer([], config)
-    
+
     tour = optimizer._aco_tsp(points)
-    
+
     # Should visit all points
     assert len(tour) == len(points)
     assert set(tour) == set(range(len(points)))
@@ -175,20 +172,15 @@ def test_aco_tsp_solving():
 def test_aco_tour_length_calculation():
     """Test tour length calculation."""
     import numpy as np
-    
+
     optimizer = ACOOptimizer([])
-    
+
     # Create simple distance matrix
-    dist_matrix = np.array([
-        [0, 10, 20, 15],
-        [10, 0, 12, 18],
-        [20, 12, 0, 14],
-        [15, 18, 14, 0]
-    ])
-    
+    dist_matrix = np.array([[0, 10, 20, 15], [10, 0, 12, 18], [20, 12, 0, 14], [15, 18, 14, 0]])
+
     tour = [0, 1, 2, 3]
     length = optimizer._tour_length(tour, dist_matrix)
-    
+
     # 0->1: 10, 1->2: 12, 2->3: 14 = 36
     assert abs(length - 36.0) < 0.001
 
@@ -197,23 +189,21 @@ def test_aco_improvement_over_baseline(sample_segments):
     """Test that ACO provides some optimization."""
     optimizer = ACOOptimizer(sample_segments)
     result = optimizer.optimize()
-    
+
     # Should complete iterations (may be more than config due to multiple layers/parts)
     assert result.metadata["iterations_completed"] >= optimizer.config.num_iterations
-    
+
     # Should have processed segments
     assert len(result.segments) > 0
 
 
 def test_aco_with_single_segment():
     """Test ACO with single segment (edge case)."""
-    single_segment = [
-        create_segment(0, 0, 0.2, 0, SegmentType.EXTRUSION, "G1 X0 Y0 E0")
-    ]
-    
+    single_segment = [create_segment(0, 0, 0.2, 0, SegmentType.EXTRUSION, "G1 X0 Y0 E0")]
+
     optimizer = ACOOptimizer(single_segment)
     result = optimizer.optimize()
-    
+
     assert len(result.segments) == 1
     assert result.optimization_type == "Travel (Speed) - ACO"
 
@@ -222,7 +212,7 @@ def test_aco_with_empty_segments():
     """Test ACO with empty segments list."""
     optimizer = ACOOptimizer([])
     result = optimizer.optimize()
-    
+
     assert len(result.segments) == 0
     assert result.original_travel_dist == 0.0
     assert result.optimized_travel_dist == 0.0

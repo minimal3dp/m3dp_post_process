@@ -37,6 +37,7 @@ class SuperSegment:
     Based on Fok et al. (2019) Segment Integration mechanism.
     Dynamically created during ACO iterations to reduce graph size.
     """
+
     id: str  # Unique identifier, e.g., "SS_123"
     original_indices: list[int]  # Indices into original segments list
     original_segments: list[Segment]  # The constituent segments
@@ -55,6 +56,7 @@ class SegmentGraph:
     always traversed together, they're merged into super-segments, shrinking
     the effective graph size.
     """
+
     original_segments: list[Segment]  # Never modified
     active_nodes: list  # Mix of int (segment indices) and SuperSegment objects
     node_to_original: dict  # Map active node (int or SuperSegment.id) to original indices
@@ -218,7 +220,7 @@ class ACOOptimizer:
         # Statistics
         self.iterations_completed = 0
         self.best_solution_iteration = 0
-        self.best_solution_cost = float('inf')
+        self.best_solution_cost = float("inf")
         self.stagnation_counter = 0
 
         # MMAS pheromone bounds (computed dynamically)
@@ -248,6 +250,7 @@ class ACOOptimizer:
             OptimizationResult with optimized segments and statistics
         """
         import time
+
         start_time = time.time()
 
         optimized_segments = []
@@ -277,7 +280,9 @@ class ACOOptimizer:
 
             # Calculate travel distances
             original_travel = self._calculate_travel_distance(layer_segments)
-            optimized_travel = self._calculate_travel_distance(optimized_segments[-len(layer_segments):])
+            optimized_travel = self._calculate_travel_distance(
+                optimized_segments[-len(layer_segments) :]
+            )
 
             total_original_travel += original_travel
             total_optimized_travel += optimized_travel
@@ -294,16 +299,19 @@ class ACOOptimizer:
             optimization_type="Travel (Speed) - ACO",
             metadata={
                 "algorithm": "aco",
-                                "aco_variant": self.config.aco_variant,
+                "aco_variant": self.config.aco_variant,
                 "num_ants": self.config.num_ants,
                 "num_iterations": self.config.num_iterations,
                 "iterations_completed": self.iterations_completed,
                 "best_solution_iteration": self.best_solution_iteration,
                 "processing_time_s": round(processing_time, 2),
                 "improvement_percent": round(
-                    (total_original_travel - total_optimized_travel) / total_original_travel * 100, 2
-                ) if total_original_travel > 0 else 0
-            }
+                    (total_original_travel - total_optimized_travel) / total_original_travel * 100,
+                    2,
+                )
+                if total_original_travel > 0
+                else 0,
+            },
         )
 
     def _compute_mmas_bounds(self, best_solution_cost: float, n: int):
@@ -354,7 +362,7 @@ class ACOOptimizer:
 
             # Sort by distance and take k nearest
             distances.sort(key=lambda x: x[0])
-            candidate_lists[i] = [j for _, j in distances[:min(k, len(distances))]]
+            candidate_lists[i] = [j for _, j in distances[: min(k, len(distances))]]
 
         return candidate_lists
 
@@ -374,7 +382,9 @@ class ACOOptimizer:
 
         return False
 
-    def _nearest_neighbor_tour(self, points: list[tuple[float, float]], dist_matrix: np.ndarray) -> list[int]:
+    def _nearest_neighbor_tour(
+        self, points: list[tuple[float, float]], dist_matrix: np.ndarray
+    ) -> list[int]:
         """
         Construct a tour using nearest neighbor heuristic.
 
@@ -565,7 +575,7 @@ class ACOOptimizer:
                 self.stagnation_counter += 1
 
             # Pheromone evaporation
-            pheromone *= (1 - self.config.rho)
+            pheromone *= 1 - self.config.rho
 
             # MMAS: Only best ant deposits pheromone
             if self.config.use_mmas:
@@ -592,8 +602,13 @@ class ACOOptimizer:
 
         return best_tour if best_tour else list(range(n))
 
-    def _construct_tour(self, n: int, pheromone: np.ndarray, heuristic: np.ndarray,
-                       candidate_lists: dict | None = None) -> list[int]:
+    def _construct_tour(
+        self,
+        n: int,
+        pheromone: np.ndarray,
+        heuristic: np.ndarray,
+        candidate_lists: dict | None = None,
+    ) -> list[int]:
         """
         Construct a tour using probabilistic selection with optional candidate lists.
 
@@ -719,10 +734,7 @@ class ACOOptimizer:
         return distance <= self.config.max_integration_distance
 
     def _find_sts_patterns(
-        self,
-        segments: list[Segment],
-        pheromone: np.ndarray,
-        threshold: float
+        self, segments: list[Segment], pheromone: np.ndarray, threshold: float
     ) -> list[tuple[int, int, float]]:
         """
         Find Segment-Transition-Segment (STS) patterns with high pheromone.
@@ -764,12 +776,7 @@ class ACOOptimizer:
         candidates.sort(key=lambda x: x[2], reverse=True)
         return candidates
 
-    def _merge_segments(
-        self,
-        segments: list[Segment],
-        idx1: int,
-        idx2: int
-    ) -> SuperSegment:
+    def _merge_segments(self, segments: list[Segment], idx1: int, idx2: int) -> SuperSegment:
         """
         Merge two adjacent segments into a SuperSegment.
 
@@ -796,7 +803,7 @@ class ACOOptimizer:
             start_point=(seg1.start.x, seg1.start.y),
             end_point=(seg2.end.x, seg2.end.y),
             total_length=total_length,
-            is_super=True
+            is_super=True,
         )
 
     def _expand_super_segment(self, super_seg: SuperSegment) -> list[Segment]:
@@ -812,10 +819,7 @@ class ACOOptimizer:
         return super_seg.original_segments
 
     def _integrate_segments_in_solution(
-        self,
-        segments: list[Segment],
-        pheromone: np.ndarray,
-        iteration: int
+        self, segments: list[Segment], pheromone: np.ndarray, iteration: int
     ) -> tuple[list[Segment], int]:
         """
         Apply segment integration to reduce problem size.
@@ -846,9 +850,7 @@ class ACOOptimizer:
 
         # Find strong STS patterns
         sts_candidates = self._find_sts_patterns(
-            segments,
-            pheromone,
-            self.config.integration_threshold
+            segments, pheromone, self.config.integration_threshold
         )
 
         if not sts_candidates:
@@ -884,4 +886,3 @@ class ACOOptimizer:
         )
 
         return segments, merge_count
-

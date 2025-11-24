@@ -17,12 +17,13 @@ Outputs a side-by-side summary of:
 """
 
 from __future__ import annotations
+
 import argparse
 import time
 from pathlib import Path
 
+from m3dp_post_process.aco_optimizer import ACOConfig, ACOOptimizer
 from m3dp_post_process.gcode_processor import GCodeParser, Segment
-from m3dp_post_process.aco_optimizer import ACOOptimizer, ACOConfig
 
 
 def mm(x: float) -> str:
@@ -44,7 +45,11 @@ def run_variant(segments, variant: str, ants: int, iters: int):
         "original_travel": res.original_travel_dist,
         "optimized_travel": res.optimized_travel_dist,
         "saved_travel": res.original_travel_dist - res.optimized_travel_dist,
-        "saved_pct": (res.original_travel_dist - res.optimized_travel_dist) / res.original_travel_dist * 100 if res.original_travel_dist > 0 else 0.0,
+        "saved_pct": (res.original_travel_dist - res.optimized_travel_dist)
+        / res.original_travel_dist
+        * 100
+        if res.original_travel_dist > 0
+        else 0.0,
         "time_s": dt,
         "ants": cfg.num_ants,
         "iters": cfg.num_iterations,
@@ -57,7 +62,9 @@ def main():
     parser.add_argument("--ants", type=int, default=8)
     parser.add_argument("--iters", type=int, default=8)
     parser.add_argument("--layers", type=int, default=1, help="Limit to first N layers for speed")
-    parser.add_argument("--max-nodes", type=int, default=1000, help="Limit to first N segments (approx nodes)")
+    parser.add_argument(
+        "--max-nodes", type=int, default=1000, help="Limit to first N segments (approx nodes)"
+    )
     args = parser.parse_args()
 
     path = Path(args.file)

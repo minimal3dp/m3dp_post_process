@@ -10,7 +10,9 @@ Notes:
 - Presets are defined in bench.json at the repo root.
 - CLI flags override preset values.
 """
+
 from __future__ import annotations
+
 import argparse
 import json
 import subprocess

@@ -38,10 +38,12 @@ async def upload_file(request: Request, file: UploadFile = File(...)):
 
     # Calculate original metrics for comparison
     from .gcode_processor import Optimizer
+
     temp_optimizer = Optimizer(parser.segments)
     original_print_time = temp_optimizer._calculate_print_time(parser.segments)
-    original_material_mm, original_material_grams = temp_optimizer._calculate_material_usage(parser.segments)
-    
+    original_material_mm, original_material_grams = temp_optimizer._calculate_material_usage(
+        parser.segments
+    )
 
     return templates.TemplateResponse(
         "partials/upload_success.html",
@@ -62,7 +64,7 @@ async def optimize_file(
     filename: str = Form(...),
     optimization_type: str = Form("travel"),  # "travel" or "bricklayers"
     algorithm: str = Form("greedy"),  # "greedy" or "aco" (for travel optimization)
-        aco_variant: str = Form("mmas"),  # "original", "mmas", or "acs" (for ACO only)
+    aco_variant: str = Form("mmas"),  # "original", "mmas", or "acs" (for ACO only)
     layer_height: float = Form(0.2),  # BrickLayers parameter
     extrusion_multiplier: float = Form(1.0),  # BrickLayers parameter
     # ACO parameters
@@ -70,57 +72,64 @@ async def optimize_file(
     num_iterations: int = Form(8),
 ):
     import logging
+
     logger = logging.getLogger("uvicorn")
-    
+
     input_path = UPLOAD_DIR / filename
     output_filename = f"optimized_{filename}"
     output_path = OUTPUT_DIR / output_filename
 
-    logger.info(f"🚀 Starting optimization: type={optimization_type}, algorithm={algorithm}, variant={aco_variant if algorithm == 'aco' else 'N/A'}, file={filename}")
-    
+    logger.info(
+        f"🚀 Starting optimization: type={optimization_type}, algorithm={algorithm}, variant={aco_variant if algorithm == 'aco' else 'N/A'}, file={filename}"
+    )
+
     # Parse
     parser = GCodeParser(file_path=input_path)
     parser.parse()
     logger.info(f"📊 Parsed {len(parser.segments)} segments")
-    
+
     # Calculate original metrics before optimization
     from .gcode_processor import Optimizer as MetricsOptimizer
+
     temp_optimizer_for_original = MetricsOptimizer(parser.segments)
     original_print_time = temp_optimizer_for_original._calculate_print_time(parser.segments)
-    original_material_mm, original_material_grams = temp_optimizer_for_original._calculate_material_usage(parser.segments)
-    logger.info(f"📈 Original metrics: time={original_print_time/60:.1f}min, material={original_material_mm/1000:.2f}m")
+    original_material_mm, original_material_grams = (
+        temp_optimizer_for_original._calculate_material_usage(parser.segments)
+    )
+    logger.info(
+        f"📈 Original metrics: time={original_print_time / 60:.1f}min, material={original_material_mm / 1000:.2f}m"
+    )
 
     # Optimize based on type
     if optimization_type == "bricklayers":
         logger.info("🧱 Starting BrickLayers optimization...")
-        from .bricklayers import BrickLayersOptimizer, BrickLayersConfig
+        from .bricklayers import BrickLayersConfig, BrickLayersOptimizer
 
         config = BrickLayersConfig(
-            layer_height=layer_height,
-            extrusion_multiplier=extrusion_multiplier
+            layer_height=layer_height, extrusion_multiplier=extrusion_multiplier
         )
         optimizer_bl = BrickLayersOptimizer(str(input_path), config)
         result = optimizer_bl.optimize(str(output_path))
         logger.info("✅ BrickLayers optimization complete")
-        
+
         # File is already written by optimizer
         gcode_content = None
     else:  # Travel optimization
         logger.info(f"🛣️  Starting travel optimization with {algorithm} algorithm...")
         # Choose algorithm
         if algorithm == "aco":
-            logger.info(f"🐜 ACO config: variant={aco_variant}, {num_ants} ants × {num_iterations} iterations")
-            from .aco_optimizer import ACOOptimizer, ACOConfig
-            
+            logger.info(
+                f"🐜 ACO config: variant={aco_variant}, {num_ants} ants × {num_iterations} iterations"
+            )
+            from .aco_optimizer import ACOConfig, ACOOptimizer
+
             aco_config = ACOConfig(
-                                aco_variant=aco_variant,
-                num_ants=num_ants,
-                num_iterations=num_iterations
+                aco_variant=aco_variant, num_ants=num_ants, num_iterations=num_iterations
             )
             optimizer = ACOOptimizer(parser.segments, aco_config)
             result = optimizer.optimize()
             logger.info("✅ ACO optimization complete")
-            
+
             # Use base Optimizer for G-code generation
             base_optimizer = Optimizer(parser.segments)
             gcode_content = base_optimizer.to_gcode(result.segments)
@@ -162,6 +171,7 @@ async def optimize_file(
 async def download_file(filename: str):
     file_path = OUTPUT_DIR / filename
     return FileResponse(file_path, filename=filename)
+
 
 @app.get("/files/{filename}")
 async def get_file(filename: str):
