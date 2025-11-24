@@ -74,6 +74,52 @@ make list-presets   # list presets from bench.json
 make bench PRESET=3layers  # run any preset
 ```
 
+### Custom Presets
+
+Add your own benchmark presets in `bench.json`.
+
+Starter template: copy `presets/preset.template.json` to `bench.json` and edit fields.
+
+Schema (fields and types):
+
+```json
+{
+  "presets": {
+    "<name>": {
+      "file": "<path-to-gcode>",      // string (required)
+      "ants": 8,                       // integer (optional but recommended)
+      "iters": 8,                      // integer (optional but recommended)
+      "layers": 3,                     // integer (optional) - limit to first N layers
+      "max_nodes": 5000                // integer (optional) - cap segment count for speed
+    }
+  }
+}
+```
+
+Example (add a new preset):
+
+```json
+{
+  "presets": {
+    "my-large": {
+      "file": "g-code/3DBenchy_PLA_NoScripts.gcode",
+      "ants": 12,
+      "iters": 12,
+      "layers": 5,
+      "max_nodes": 15000
+    }
+  }
+}
+```
+
+Run your preset:
+
+```zsh
+uv run python scripts/bench.py my-large
+# or via Make
+make bench PRESET=my-large
+```
+
   ## Benchmarks
 
   Quickly compare Original vs MMAS ACO variants on the included Benchy file. The defaults below cap layers and nodes to keep runtime short.
