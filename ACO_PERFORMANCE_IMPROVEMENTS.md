@@ -402,28 +402,71 @@ All existing tests pass without modification, confirming backward compatibility.
 
 ## Future Enhancements (Phase 2)
 
-Based on research, additional 30-40% speedup is achievable:
+Based on additional research analysis, we've identified high-impact optimizations. The priorities are ordered by expected ROI and implementation complexity:
 
-### 1. Multi-Population Strategy
+### 1. 🔥 Segment Integration (HIGHEST PRIORITY)
+**Research Source**: Fok et al. (2019) - "An ACO-Based Tool-Path Optimizer for 3D Printing Applications" [Ref 6]
+
+- **Problem**: Dense infill patterns create graphs with thousands of tiny connected segments
+- **Solution**: Dynamically merge frequently-traversed "Segment-Transition-Segment" (STS) groups into super-segments
+- **Mechanism**: 
+  - After each iteration, identify STS patterns with high pheromone
+  - Probabilistically merge them (controlled by parameter θ)
+  - Graph size N shrinks over time, accelerating later iterations
+- **Expected impact**: **30-40% additional speedup** (proven by Fok et al.)
+- **3D Printing Specific**: Designed for curved surfaces tessellated into many line segments
+- **Implementation complexity**: Medium (requires graph restructuring logic)
+
+### 2. Selective Pheromone Memory
+**Research Source**: Skinderowicz (2012, 2022) - Sparse pheromone storage [Ref 7, 8]
+
+- **Problem**: O(N²) pheromone matrix consumes excessive RAM (200MB for 45K nodes)
+- **Solution**: Store pheromones only for candidate list edges + high-value edges
+- **Mechanism**: Use hash map/sparse matrix, assume τ₀ for unstored edges
+- **Expected impact**: **50-70% memory reduction**
+- **Benefits**: Enables larger file processing, firmware integration readiness
+- **Implementation complexity**: Medium (requires data structure refactoring)
+
+### 3. K-means Pre-Clustering
+**Research Source**: Lin et al. (2024) - "A Novel Ant Colony Algorithm for Optimizing 3D Printing Paths" [Ref 9]
+
+- **Problem**: Layers with >10K segments cause combinatorial explosion
+- **Solution**: Cluster segments spatially, apply ACO hierarchically
+- **Mechanism**:
+  - K-means cluster large layers into spatial groups
+  - Optimize cluster visiting order (TSP)
+  - Optimize within-cluster segments (URPP)
+- **Expected impact**: **40-60% speedup on very large files** (>10K segments/layer)
+- **Implementation complexity**: High (requires clustering integration)
+
+### 4. Multi-Population Strategy
 - Divide ants into elite (30%) and common (70%) populations
 - Elite ants focus on local optimization
 - Common ants explore globally
 - **Expected impact**: 20-30% speedup
+- **Implementation complexity**: Low (parallel processing)
 
-### 2. Local Pheromone Decay
+### 5. Local Pheromone Decay (ACS)
 - Ants deposit/decay pheromone during tour construction (not just at end)
 - Reduces "follow the leader" behavior
 - **Expected impact**: 15-20% improved quality
+- **Implementation complexity**: Low (modify construction phase)
 
-### 3. Hierarchical Co-Evolution
-- Process layers in parallel sub-populations
-- Exchange best solutions every N iterations
-- **Expected impact**: 30-40% speedup with parallelization
+### Phase 2 Roadmap Priority
 
-### Total Phase 2 Impact
-- **Processing time**: Additional 30-40% reduction
-- **Total improvement**: 2-3x faster than baseline
-- **Solution quality**: Same or better
+**Tier 1 (Implement First)**:
+1. Segment Integration - Biggest proven impact for 3D printing
+2. Selective Pheromone Memory - Enables larger files + future firmware work
+
+**Tier 2 (After Tier 1 validated)**:
+3. K-means Clustering - For extreme-scale files
+4. Multi-Population + Local Decay - Quality improvements
+
+### Total Phase 2 Potential Impact
+- **Processing time**: Additional 40-60% reduction beyond Phase 1
+- **Memory usage**: 50-70% reduction
+- **Total improvement**: **~3x faster than baseline** (5m → ~1.5m)
+- **File size capacity**: Support >100K segment files
 
 ---
 
@@ -466,6 +509,8 @@ The key insight: **Don't optimize code, optimize algorithms**. The right algorit
 
 ## References
 
+### Phase 1 Implementation (Implemented)
+
 1. Maniezzo, V. "Ant Colony Optimization: An Overview." University of Bologna.
 
 2. Deng, W., Xu, J., & Zhao, H. (2019). "An Improved Ant Colony Optimization Algorithm Based on Hybrid Strategies for Scheduling Problem." IEEE Access, 7, 20281-20292.
@@ -475,6 +520,37 @@ The key insight: **Don't optimize code, optimize algorithms**. The right algorit
 4. Stützle, T., & Hoos, H. H. (2000). "MAX-MIN Ant System." Future Generation Computer Systems, 16(8), 889-914.
 
 5. Dorigo, M., & Gambardella, L. M. (1997). "Ant Colony System: A Cooperative Learning Approach to the Traveling Salesman Problem." IEEE Transactions on Evolutionary Computation, 1(1), 53-66.
+
+### Phase 2 Research (Not Yet Implemented)
+
+6. **Fok, K. Y., Cheng, C. T., Ganganath, N., Iu, H. H. C., & Chi, K. T. (2019).** "An ACO-Based Tool-Path Optimizer for 3-D Printing Applications." *IEEE Transactions on Industrial Informatics*, 15(4), 2277-2287. https://doi.org/10.1109/TII.2018.2889740
+   - **Key Innovation**: Segment Integration mechanism (34.9% speedup)
+   - **Relevance**: Purpose-built for 3D printing toolpath optimization
+   - **Impact**: Demonstrated 8.6% print time reduction, 90% stringing reduction
+
+7. **Skinderowicz, R. (2012).** "Ant Colony System with Selective Pheromone Memory for TSP." *Lecture Notes in Computer Science*, 7654, 483-492. https://doi.org/10.1007/978-3-642-34707-8_49
+   - **Key Innovation**: Sparse pheromone storage reduces memory from O(N²) to O(k·N)
+   - **Relevance**: Critical for large-scale problems and embedded systems
+
+8. **Skinderowicz, R. (2022).** "Improving Ant Colony Optimization efficiency for solving large TSP instances." *Applied Soft Computing*, 120, 108653. https://doi.org/10.1016/j.asoc.2022.108653
+   - **Key Innovation**: Latest research on scaling ACO to very large problems
+   - **Relevance**: Addresses performance for 50K+ node problems
+
+9. **Lin, X., Huang, Z., Shi, W., & Guo, K. (2024).** "A Novel Ant Colony Algorithm for Optimizing 3D Printing Paths." *Electronics*, 13(16), 3252. https://doi.org/10.3390/electronics13163252
+   - **Key Innovation**: K-means clustering + hierarchical ACO
+   - **Relevance**: Handles extremely large print files (>10K segments/layer)
+
+10. **Groves, G. W., & Van Vuuren, J. H. (2005).** "Efficient heuristics for the Rural Postman Problem." *ORiON*, 21(1), 33-51. https://doi.org/10.5784/21-1-17
+    - **Key Innovation**: Better heuristics for URPP (vs. TSP formulation)
+    - **Relevance**: Within-part segment optimization is URPP, not TSP
+
+### Hardware Integration References (Future Work)
+
+11. **Skinderowicz, R. (2016).** GPU-based Parallel MAX-MIN Ant System. arXiv:1605.02669
+    - 24x speedup with CUDA parallelization
+
+12. **Huang, H. C. (2015).** "A Taguchi-Based Heterogeneous Parallel Metaheuristic ACO-PSO and Its FPGA Realization." *IEEE Transactions on Industrial Informatics*, 11(4), 915-922. https://doi.org/10.1109/TII.2015.2440173
+    - FPGA implementation for real-time embedded optimization
 
 ---
 
