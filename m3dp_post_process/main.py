@@ -72,22 +72,30 @@ async def optimize_file(
     seam_strategy: str = Form("random"),  # "random", "aligned", "rear"
     reduce_crossings: bool = Form(True),
 ):
+    import logging
+    logger = logging.getLogger("uvicorn")
+    
     input_path = UPLOAD_DIR / filename
     output_filename = f"optimized_{filename}"
     output_path = OUTPUT_DIR / output_filename
 
+    logger.info(f"🚀 Starting optimization: type={optimization_type}, algorithm={algorithm}, file={filename}")
+    
     # Parse
     parser = GCodeParser(file_path=input_path)
     parser.parse()
+    logger.info(f"📊 Parsed {len(parser.segments)} segments")
     
     # Calculate original metrics before optimization
     from .gcode_processor import Optimizer as MetricsOptimizer
     temp_optimizer_for_original = MetricsOptimizer(parser.segments)
     original_print_time = temp_optimizer_for_original._calculate_print_time(parser.segments)
     original_material_mm, original_material_grams = temp_optimizer_for_original._calculate_material_usage(parser.segments)
+    logger.info(f"📈 Original metrics: time={original_print_time/60:.1f}min, material={original_material_mm/1000:.2f}m")
 
     # Optimize based on type
     if optimization_type == "bricklayers":
+        logger.info("🧱 Starting BrickLayers optimization...")
         from .bricklayers import BrickLayersOptimizer, BrickLayersConfig
 
         config = BrickLayersConfig(
@@ -96,12 +104,15 @@ async def optimize_file(
         )
         optimizer_bl = BrickLayersOptimizer(str(input_path), config)
         result = optimizer_bl.optimize(str(output_path))
+        logger.info("✅ BrickLayers optimization complete")
         
         # File is already written by optimizer
         gcode_content = None
     else:  # Travel optimization
+        logger.info(f"🛣️  Starting travel optimization with {algorithm} algorithm...")
         # Choose algorithm
         if algorithm == "aco":
+            logger.info(f"🐜 ACO config: {num_ants} ants × {num_iterations} iterations")
             from .aco_optimizer import ACOOptimizer, ACOConfig
             
             aco_config = ACOConfig(
