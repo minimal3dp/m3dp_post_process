@@ -1,0 +1,11 @@
+{
+  "presets": {
+    "my-preset": {
+      "file": "g-code/YourFile.gcode",
+      "ants": 8,
+      "iters": 8,
+      "layers": 3,
+      "max_nodes": 5000
+    }
+  }
+}
