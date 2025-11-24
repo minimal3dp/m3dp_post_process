@@ -1,0 +1,23 @@
+{
+  "presets": {
+    "quick": {
+      "file": "g-code/3DBenchy_PLA_NoScripts.gcode",
+      "ants": 1,
+      "iters": 1,
+      "layers": 1,
+      "max_nodes": 500
+    },
+    "3layers": {
+      "file": "g-code/3DBenchy_PLA_NoScripts.gcode",
+      "ants": 8,
+      "iters": 8,
+      "layers": 3,
+      "max_nodes": 5000
+    },
+    "full": {
+      "file": "g-code/3DBenchy_PLA_NoScripts.gcode",
+      "ants": 8,
+      "iters": 8
+    }
+  }
+}

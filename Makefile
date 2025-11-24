@@ -5,7 +5,7 @@ PY=$(UV) run python
 BENCH=Scripts to compare ACO variants on G-code
 FILE=g-code/3DBenchy_PLA_NoScripts.gcode
 
-.PHONY: bench-quick bench-3layers bench-full help
+.PHONY: bench-quick bench-3layers bench-full help bench list-presets
 
 help:
 	@echo "Available targets:"
@@ -31,3 +31,11 @@ bench-full:
 	$(PY) scripts/bench_aco_variants.py $(FILE) \
 		--ants 8 \
 		--iters 8
+
+# Generic preset runner via bench.json
+bench:
+	@if [ -z "$(PRESET)" ]; then echo "Usage: make bench PRESET=<name> (see: make list-presets)"; exit 1; fi
+	$(PY) scripts/bench.py $(PRESET)
+
+list-presets:
+	$(PY) scripts/bench.py --list

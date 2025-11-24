@@ -70,6 +70,8 @@ Run preset benchmarks using Python (uv) through Make targets:
 make bench-quick    # 1×1, first layer; fast sanity compare
 make bench-3layers  # 8×8, first 3 layers; illustrative compare
 make bench-full     # 8×8 over full file; longer runtime
+make list-presets   # list presets from bench.json
+make bench PRESET=3layers  # run any preset
 ```
 
   ## Benchmarks
