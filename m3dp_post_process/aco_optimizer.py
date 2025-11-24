@@ -49,13 +49,13 @@ def is_travel_segment(seg: Segment) -> bool:
 
 @dataclass
 class ACOConfig:
-    """Configuration for Ant Colony Optimization."""
+    """Configuration for Ant Colony Optimization with MMAS and performance enhancements."""
     
     num_ants: int = 8
     """Number of ants per iteration (parallel searches)"""
     
     num_iterations: int = 8
-    """Number of optimization iterations"""
+    """Maximum number of optimization iterations"""
     
     alpha: float = 1.0
     """Pheromone importance factor (higher = more weight on pheromone trails)"""
@@ -71,6 +71,24 @@ class ACOConfig:
     
     initial_pheromone: float = 0.1
     """Initial pheromone level on all edges"""
+    
+    # MMAS (Max-Min Ant System) parameters
+    use_mmas: bool = True
+    """Enable Max-Min Ant System with pheromone bounds"""
+    
+    # Candidate list parameters
+    use_candidate_lists: bool = True
+    """Enable candidate lists for faster nearest neighbor lookup"""
+    
+    candidate_list_size: int = 25
+    """Number of nearest neighbors in candidate list"""
+    
+    # Early termination parameters
+    enable_early_termination: bool = True
+    """Stop if no improvement for several iterations"""
+    
+    stagnation_limit: int = 15
+    """Number of iterations without improvement before stopping"""
 
 
 class ACOOptimizer:
@@ -103,6 +121,15 @@ class ACOOptimizer:
         # Statistics
         self.iterations_completed = 0
         self.best_solution_iteration = 0
+        self.best_solution_cost = float('inf')
+        self.stagnation_counter = 0
+        
+        # MMAS pheromone bounds (computed dynamically)
+        self.tau_max: Optional[float] = None
+        self.tau_min: Optional[float] = None
+        
+        # Candidate lists cache (computed once per part/layer)
+        self.candidate_lists: dict = {}
         
     def _group_by_layer(self) -> dict:
         """Group segments by Z height (layer)."""
@@ -180,6 +207,97 @@ class ACOOptimizer:
                 ) if total_original_travel > 0 else 0
             }
         )
+    
+    def _compute_mmas_bounds(self, best_solution_cost: float, n: int):
+        """
+        Compute MMAS pheromone bounds based on best known solution.
+        
+        Based on research: Stützle & Hoos (2000)
+        τmax = 1 / (ρ * L_best)
+        τmin = τmax / (2n)
+        
+        Args:
+            best_solution_cost: Cost of best known solution
+            n: Problem size (number of nodes)
+        """
+        if best_solution_cost <= 0:
+            return
+        
+        self.tau_max = 1.0 / (self.config.rho * best_solution_cost)
+        self.tau_min = self.tau_max / (2 * n)
+    
+    def _clamp_pheromone(self, tau: float) -> float:
+        """Clamp pheromone value to MMAS bounds."""
+        if not self.config.use_mmas or self.tau_max is None or self.tau_min is None:
+            return tau
+        return max(self.tau_min, min(self.tau_max, tau))
+    
+    def _build_candidate_list(self, points: List[Tuple[float, float]], k: int) -> dict:
+        """
+        Build candidate lists for all points (k nearest neighbors).
+        
+        Args:
+            points: List of (x, y) coordinates
+            k: Number of nearest neighbors
+            
+        Returns:
+            Dictionary mapping point index to list of k nearest neighbor indices
+        """
+        n = len(points)
+        candidate_lists = {}
+        
+        for i in range(n):
+            # Calculate distances to all other points
+            distances = []
+            for j in range(n):
+                if i != j:
+                    dist = self._distance(points[i], points[j])
+                    distances.append((dist, j))
+            
+            # Sort by distance and take k nearest
+            distances.sort(key=lambda x: x[0])
+            candidate_lists[i] = [j for _, j in distances[:min(k, len(distances))]]
+        
+        return candidate_lists
+    
+    def _check_early_termination(self) -> bool:
+        """
+        Check if early termination criteria are met.
+        
+        Returns:
+            True if optimization should stop early
+        """
+        if not self.config.enable_early_termination:
+            return False
+        
+        # Stop if stagnation limit reached
+        if self.stagnation_counter >= self.config.stagnation_limit:
+            return True
+        
+        return False
+    
+    def _nearest_neighbor_tour(self, points: List[Tuple[float, float]], dist_matrix: np.ndarray) -> List[int]:
+        """
+        Construct a tour using nearest neighbor heuristic.
+        
+        Args:
+            points: List of (x, y) coordinates
+            dist_matrix: Distance matrix
+            
+        Returns:
+            Tour as list of node indices
+        """
+        n = len(points)
+        tour = [0]
+        unvisited = set(range(1, n))
+        
+        while unvisited:
+            current = tour[-1]
+            nearest = min(unvisited, key=lambda node: dist_matrix[current][node])
+            tour.append(nearest)
+            unvisited.remove(nearest)
+        
+        return tour
     
     def _identify_parts(self, segments: List[Segment]) -> List[List[Segment]]:
         """
@@ -261,7 +379,12 @@ class ACOOptimizer:
     
     def _aco_tsp(self, points: List[Tuple[float, float]]) -> List[int]:
         """
-        Solve TSP using Ant Colony Optimization.
+        Solve TSP using Ant Colony Optimization with MMAS and performance enhancements.
+        
+        Enhancements:
+        - MMAS: Pheromone bounds to prevent premature convergence
+        - Candidate lists: Fast nearest neighbor lookup
+        - Early termination: Stop if no improvement for several iterations
         
         Args:
             points: List of (x, y) coordinates
@@ -280,8 +403,25 @@ class ACOOptimizer:
                 if i != j:
                     dist_matrix[i][j] = self._distance(points[i], points[j])
         
+        # Build candidate lists for faster neighbor selection
+        candidate_lists = {}
+        if self.config.use_candidate_lists:
+            candidate_lists = self._build_candidate_list(points, self.config.candidate_list_size)
+        
+        # Initialize with nearest neighbor heuristic for better MMAS bounds
+        nn_tour = self._nearest_neighbor_tour(points, dist_matrix)
+        nn_length = self._tour_length(nn_tour, dist_matrix)
+        
+        # Initialize MMAS pheromone bounds
+        if self.config.use_mmas:
+            self._compute_mmas_bounds(nn_length, n)
+            # Initialize pheromone to tau_max (optimistic start)
+            initial_pheromone = self.tau_max if self.tau_max else self.config.initial_pheromone
+        else:
+            initial_pheromone = self.config.initial_pheromone
+        
         # Pheromone matrix
-        pheromone = np.ones((n, n)) * self.config.initial_pheromone
+        pheromone = np.ones((n, n)) * initial_pheromone
         
         # Heuristic information (inverse of distance)
         heuristic = np.zeros((n, n))
@@ -290,17 +430,23 @@ class ACOOptimizer:
                 if i != j and dist_matrix[i][j] > 0:
                     heuristic[i][j] = 1.0 / dist_matrix[i][j]
         
-        best_tour = None
-        best_length = float('inf')
+        best_tour = nn_tour
+        best_length = nn_length
+        self.best_solution_cost = best_length
+        self.stagnation_counter = 0
         
         # ACO iterations
         for iteration in range(self.config.num_iterations):
+            # Check early termination
+            if self._check_early_termination():
+                break
+            
             # Construct solutions with multiple ants (parallel)
             tours = []
             lengths = []
             
             for _ in range(self.config.num_ants):
-                tour = self._construct_tour(n, pheromone, heuristic)
+                tour = self._construct_tour(n, pheromone, heuristic, candidate_lists)
                 length = self._tour_length(tour, dist_matrix)
                 tours.append(tour)
                 lengths.append(length)
@@ -311,29 +457,55 @@ class ACOOptimizer:
                 best_length = lengths[min_length_idx]
                 best_tour = tours[min_length_idx]
                 self.best_solution_iteration = iteration
+                self.best_solution_cost = best_length
+                self.stagnation_counter = 0
+                
+                # Update MMAS bounds with new best solution
+                if self.config.use_mmas:
+                    self._compute_mmas_bounds(best_length, n)
+            else:
+                self.stagnation_counter += 1
             
             # Pheromone evaporation
             pheromone *= (1 - self.config.rho)
             
-            # Pheromone deposit
-            for tour, length in zip(tours, lengths):
-                deposit = 1.0 / length if length > 0 else 0
-                for i in range(len(tour) - 1):
-                    pheromone[tour[i]][tour[i + 1]] += deposit
-                    pheromone[tour[i + 1]][tour[i]] += deposit
+            # MMAS: Only best ant deposits pheromone
+            if self.config.use_mmas:
+                deposit = 1.0 / best_length if best_length > 0 else 0
+                for i in range(len(best_tour) - 1):
+                    pheromone[best_tour[i]][best_tour[i + 1]] += deposit
+                    pheromone[best_tour[i + 1]][best_tour[i]] += deposit
+                    # Clamp to bounds
+                    pheromone[best_tour[i]][best_tour[i + 1]] = self._clamp_pheromone(
+                        pheromone[best_tour[i]][best_tour[i + 1]]
+                    )
+                    pheromone[best_tour[i + 1]][best_tour[i]] = self._clamp_pheromone(
+                        pheromone[best_tour[i + 1]][best_tour[i]]
+                    )
+            else:
+                # Standard ACO: All ants deposit
+                for tour, length in zip(tours, lengths):
+                    deposit = 1.0 / length if length > 0 else 0
+                    for i in range(len(tour) - 1):
+                        pheromone[tour[i]][tour[i + 1]] += deposit
+                        pheromone[tour[i + 1]][tour[i]] += deposit
             
             self.iterations_completed += 1
         
         return best_tour if best_tour else list(range(n))
     
-    def _construct_tour(self, n: int, pheromone: np.ndarray, heuristic: np.ndarray) -> List[int]:
+    def _construct_tour(self, n: int, pheromone: np.ndarray, heuristic: np.ndarray, 
+                       candidate_lists: Optional[dict] = None) -> List[int]:
         """
-        Construct a tour using probabilistic selection based on pheromone and heuristic.
+        Construct a tour using probabilistic selection with optional candidate lists.
+        
+        Implements ACS pseudo-random-proportional rule with q0 parameter.
         
         Args:
             n: Number of nodes
             pheromone: Pheromone matrix
             heuristic: Heuristic matrix (inverse distance)
+            candidate_lists: Optional dict of k-nearest neighbors for each node
             
         Returns:
             Tour as list of node indices
@@ -344,24 +516,46 @@ class ACOOptimizer:
         while unvisited:
             current = tour[-1]
             
-            # Calculate probabilities for unvisited nodes
-            probabilities = []
-            nodes = list(unvisited)
-            
-            for node in nodes:
-                tau = pheromone[current][node] ** self.config.alpha
-                eta = heuristic[current][node] ** self.config.beta
-                probabilities.append(tau * eta)
-            
-            # Normalize probabilities
-            total = sum(probabilities)
-            if total > 0:
-                probabilities = [p / total for p in probabilities]
+            # Use candidate list if available, otherwise all unvisited nodes
+            if candidate_lists and current in candidate_lists:
+                candidates = [node for node in candidate_lists[current] if node in unvisited]
+                if not candidates:  # Candidate list exhausted, use all unvisited
+                    candidates = list(unvisited)
             else:
-                probabilities = [1.0 / len(nodes)] * len(nodes)
+                candidates = list(unvisited)
             
-            # Select next node
-            next_node = np.random.choice(nodes, p=probabilities)
+            # ACS pseudo-random-proportional rule
+            q = np.random.random()
+            if q < self.config.q0:
+                # Exploitation: choose best candidate
+                best_value = -1
+                best_node = candidates[0]
+                for node in candidates:
+                    tau = pheromone[current][node] ** self.config.alpha
+                    eta = heuristic[current][node] ** self.config.beta
+                    value = tau * eta
+                    if value > best_value:
+                        best_value = value
+                        best_node = node
+                next_node = best_node
+            else:
+                # Exploration: probabilistic selection
+                probabilities = []
+                for node in candidates:
+                    tau = pheromone[current][node] ** self.config.alpha
+                    eta = heuristic[current][node] ** self.config.beta
+                    probabilities.append(tau * eta)
+                
+                # Normalize probabilities
+                total = sum(probabilities)
+                if total > 0:
+                    probabilities = [p / total for p in probabilities]
+                else:
+                    probabilities = [1.0 / len(candidates)] * len(candidates)
+                
+                # Select next node
+                next_node = np.random.choice(candidates, p=probabilities)
+            
             tour.append(next_node)
             unvisited.remove(next_node)
         

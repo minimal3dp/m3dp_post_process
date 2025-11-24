@@ -133,18 +133,6 @@
             </p>
         </div>
         {% endif %}
-
-        {% if metadata and metadata.get('seam_strategy') %}
-        <!-- Quality optimizer stats -->
-        <div class="bg-white p-3 rounded shadow-sm">
-            <p class="text-xs text-gray-500 uppercase">Seam Strategy</p>
-            <p class="text-lg font-bold text-purple-600">{{ metadata.seam_strategy|title }}</p>
-        </div>
-        <div class="bg-white p-3 rounded shadow-sm">
-            <p class="text-xs text-gray-500 uppercase">Seams Optimized</p>
-            <p class="text-lg font-bold text-green-600">{{ metadata.seams_optimized }}</p>
-        </div>
-        {% endif %}
     </div>
 
     <a href="/download/{{ optimized_filename }}"

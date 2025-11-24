@@ -67,10 +67,6 @@ async def optimize_file(
     # ACO parameters
     num_ants: int = Form(8),
     num_iterations: int = Form(8),
-    # Quality parameters
-    seam_hiding: bool = Form(False),
-    seam_strategy: str = Form("random"),  # "random", "aligned", "rear"
-    reduce_crossings: bool = Form(True),
 ):
     import logging
     logger = logging.getLogger("uvicorn")
@@ -121,39 +117,16 @@ async def optimize_file(
             )
             optimizer = ACOOptimizer(parser.segments, aco_config)
             result = optimizer.optimize()
+            logger.info("✅ ACO optimization complete")
+            
+            # Use base Optimizer for G-code generation
+            base_optimizer = Optimizer(parser.segments)
+            gcode_content = base_optimizer.to_gcode(result.segments)
         else:  # greedy
             optimizer = Optimizer(parser.segments)
             result = optimizer.optimize_travel_greedy()
-        
-        # Apply quality optimizations if requested
-        if seam_hiding or reduce_crossings:
-            from .quality_optimizer import QualityOptimizer, QualityConfig, SeamStrategy
-            
-            # Map string to enum
-            seam_strat = SeamStrategy.DISABLED
-            if seam_hiding:
-                seam_strat = {
-                    "random": SeamStrategy.RANDOM,
-                    "aligned": SeamStrategy.ALIGNED,
-                    "rear": SeamStrategy.REAR,
-                }.get(seam_strategy, SeamStrategy.RANDOM)
-            
-            quality_config = QualityConfig(
-                seam_strategy=seam_strat,
-                reduce_shell_crossings=reduce_crossings
-            )
-            quality_opt = QualityOptimizer(result.segments, quality_config)
-            quality_result = quality_opt.optimize()
-            
-            # Merge metadata
-            if result.metadata is None:
-                result.metadata = {}
-            if quality_result.metadata:
-                result.metadata.update(quality_result.metadata)
-            result.segments = quality_result.segments
-        
-        # Generate G-code for travel optimization
-        gcode_content = optimizer.to_gcode(result.segments)
+            logger.info("✅ Greedy optimization complete")
+            gcode_content = optimizer.to_gcode(result.segments)
 
     # Write output file if not already written
     if gcode_content is not None:
