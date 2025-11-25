@@ -20,6 +20,7 @@ from m3dp_post_process.gcode_processor import Point, Segment, SegmentType
 # Fixtures
 # ===========================================================================
 
+
 @pytest.fixture
 def simple_segments():
     """Create 4 segments forming a square path."""
@@ -31,7 +32,7 @@ def simple_segments():
             type=SegmentType.EXTRUSION,
             speed=3000,
             line_number=1,
-            original_text="G1 X10 Y0 E5 F3000"
+            original_text="G1 X10 Y0 E5 F3000",
         ),
         # Right edge (10,0) -> (10,10)
         Segment(
@@ -40,7 +41,7 @@ def simple_segments():
             type=SegmentType.EXTRUSION,
             speed=3000,
             line_number=2,
-            original_text="G1 X10 Y10 E10 F3000"
+            original_text="G1 X10 Y10 E10 F3000",
         ),
         # Top edge (10,10) -> (0,10)
         Segment(
@@ -49,7 +50,7 @@ def simple_segments():
             type=SegmentType.EXTRUSION,
             speed=3000,
             line_number=3,
-            original_text="G1 X0 Y10 E15 F3000"
+            original_text="G1 X0 Y10 E15 F3000",
         ),
         # Left edge (0,10) -> (0,0)
         Segment(
@@ -58,7 +59,7 @@ def simple_segments():
             type=SegmentType.EXTRUSION,
             speed=3000,
             line_number=4,
-            original_text="G1 X0 Y0 E20 F3000"
+            original_text="G1 X0 Y0 E20 F3000",
         ),
     ]
     return segments
@@ -75,7 +76,7 @@ def connected_segments():
             type=SegmentType.EXTRUSION,
             speed=3000,
             line_number=1,
-            original_text="G1 X5 Y0 E5"
+            original_text="G1 X5 Y0 E5",
         ),
         # Segment 1: (5,0) -> (10,0) - spatially adjacent to 0
         Segment(
@@ -84,7 +85,7 @@ def connected_segments():
             type=SegmentType.EXTRUSION,
             speed=3000,
             line_number=2,
-            original_text="G1 X10 Y0 E10"
+            original_text="G1 X10 Y0 E10",
         ),
         # Segment 2: (10,0) -> (10,5) - spatially adjacent to 1
         Segment(
@@ -93,7 +94,7 @@ def connected_segments():
             type=SegmentType.EXTRUSION,
             speed=3000,
             line_number=3,
-            original_text="G1 X10 Y5 E15"
+            original_text="G1 X10 Y5 E15",
         ),
         # Segment 3: (0,10) -> (5,10) - NOT adjacent (gap)
         Segment(
@@ -102,7 +103,7 @@ def connected_segments():
             type=SegmentType.EXTRUSION,
             speed=3000,
             line_number=4,
-            original_text="G1 X5 Y10 E20"
+            original_text="G1 X5 Y10 E20",
         ),
     ]
     return segments
@@ -126,6 +127,7 @@ def aco_config_with_integration():
 # Test SuperSegment Data Structure
 # ===========================================================================
 
+
 def test_super_segment_creation(simple_segments):
     """Test creating a SuperSegment from two segments."""
     seg1 = simple_segments[0]
@@ -138,7 +140,7 @@ def test_super_segment_creation(simple_segments):
         start_point=(seg1.start.x, seg1.start.y),
         end_point=(seg2.end.x, seg2.end.y),
         total_length=20.0,  # 10 + 10
-        is_super=True
+        is_super=True,
     )
 
     assert super_seg.id == "SS_0_1"
@@ -175,13 +177,10 @@ def test_super_segment_expansion(simple_segments):
 # Test SegmentGraph
 # ===========================================================================
 
+
 def test_segment_graph_initialization(simple_segments):
     """Test SegmentGraph initializes with all segments."""
-    graph = SegmentGraph(
-        original_segments=simple_segments,
-        active_nodes=[],
-        node_to_original={}
-    )
+    graph = SegmentGraph(original_segments=simple_segments, active_nodes=[], node_to_original={})
 
     assert len(graph.original_segments) == 4
     assert len(graph.active_nodes) == 4  # Auto-initialized
@@ -191,11 +190,7 @@ def test_segment_graph_initialization(simple_segments):
 
 def test_segment_graph_get_point(simple_segments):
     """Test getting endpoint from graph node."""
-    graph = SegmentGraph(
-        original_segments=simple_segments,
-        active_nodes=[],
-        node_to_original={}
-    )
+    graph = SegmentGraph(original_segments=simple_segments, active_nodes=[], node_to_original={})
 
     point0 = graph.get_point(0)
     assert point0 == (10, 0)  # End of segment 0
@@ -221,7 +216,7 @@ def test_segment_graph_get_point_super_segment(simple_segments):
     graph = SegmentGraph(
         original_segments=simple_segments,
         active_nodes=[super_seg, 2, 3],  # super_seg replaces 0 and 1
-        node_to_original={}
+        node_to_original={},
     )
 
     point = graph.get_point(super_seg)
@@ -243,9 +238,7 @@ def test_segment_graph_get_original_indices(simple_segments):
     )
 
     graph = SegmentGraph(
-        original_segments=simple_segments,
-        active_nodes=[super_seg, 2, 3],
-        node_to_original={}
+        original_segments=simple_segments, active_nodes=[super_seg, 2, 3], node_to_original={}
     )
 
     # Regular segment
@@ -260,6 +253,7 @@ def test_segment_graph_get_original_indices(simple_segments):
 # ===========================================================================
 # Test Spatial Adjacency Detection
 # ===========================================================================
+
 
 def test_are_spatially_adjacent_true(connected_segments, aco_config_with_integration):
     """Test detecting adjacent segments."""
@@ -289,7 +283,7 @@ def test_are_spatially_adjacent_tolerance(aco_config_with_integration):
         type=SegmentType.EXTRUSION,
         speed=3000,
         line_number=1,
-        original_text="G1 X10 Y0 E5"
+        original_text="G1 X10 Y0 E5",
     )
     seg2 = Segment(
         start=Point(10.5, 0, 0, 5),  # 0.5mm gap
@@ -297,7 +291,7 @@ def test_are_spatially_adjacent_tolerance(aco_config_with_integration):
         type=SegmentType.EXTRUSION,
         speed=3000,
         line_number=2,
-        original_text="G1 X20 Y0 E10"
+        original_text="G1 X20 Y0 E10",
     )
 
     optimizer = ACOOptimizer([seg1, seg2], aco_config_with_integration)
@@ -309,6 +303,7 @@ def test_are_spatially_adjacent_tolerance(aco_config_with_integration):
 # ===========================================================================
 # Test STS Pattern Detection
 # ===========================================================================
+
 
 def test_find_sts_patterns_high_pheromone(connected_segments, aco_config_with_integration):
     """Test finding STS patterns with high pheromone."""
@@ -331,7 +326,7 @@ def test_find_sts_patterns_high_pheromone(connected_segments, aco_config_with_in
     patterns = optimizer._find_sts_patterns(
         connected_segments,
         pheromone,
-        threshold=0.5  # 50% of tau_max = 0.5
+        threshold=0.5,  # 50% of tau_max = 0.5
     )
 
     # Should find 2 patterns: (0,1) and (1,2)
@@ -356,11 +351,7 @@ def test_find_sts_patterns_no_adjacency(connected_segments, aco_config_with_inte
 
     optimizer.tau_max = 1.0
 
-    patterns = optimizer._find_sts_patterns(
-        connected_segments,
-        pheromone,
-        threshold=0.5
-    )
+    patterns = optimizer._find_sts_patterns(connected_segments, pheromone, threshold=0.5)
 
     # Should NOT find (2,3) because they're not spatially adjacent
     pattern_pairs = [(p[0], p[1]) for p in patterns]
@@ -370,6 +361,7 @@ def test_find_sts_patterns_no_adjacency(connected_segments, aco_config_with_inte
 # ===========================================================================
 # Test Segment Merging
 # ===========================================================================
+
 
 def test_merge_segments(connected_segments, aco_config_with_integration):
     """Test merging two segments into a SuperSegment."""
@@ -401,6 +393,7 @@ def test_expand_super_segment(connected_segments, aco_config_with_integration):
 # Test Integration Process
 # ===========================================================================
 
+
 def test_integrate_segments_disabled(connected_segments):
     """Test that integration does nothing when disabled."""
     config = ACOConfig(enable_segment_integration=False)
@@ -410,9 +403,7 @@ def test_integrate_segments_disabled(connected_segments):
     pheromone = np.ones((n, n)) * 0.5
 
     result_segs, merge_count = optimizer._integrate_segments_in_solution(
-        connected_segments,
-        pheromone,
-        iteration=5
+        connected_segments, pheromone, iteration=5
     )
 
     assert result_segs == connected_segments
@@ -430,7 +421,7 @@ def test_integrate_segments_before_warmup(connected_segments, aco_config_with_in
     result_segs, merge_count = optimizer._integrate_segments_in_solution(
         connected_segments,
         pheromone,
-        iteration=2  # Before warmup
+        iteration=2,  # Before warmup
     )
 
     assert result_segs == connected_segments
@@ -451,9 +442,7 @@ def test_integrate_segments_merges_strong_patterns(connected_segments, aco_confi
     optimizer.tau_max = 1.0
 
     result_segs, merge_count = optimizer._integrate_segments_in_solution(
-        connected_segments,
-        pheromone,
-        iteration=3
+        connected_segments, pheromone, iteration=3
     )
 
     # Should have performed at least 1 merge
@@ -464,6 +453,7 @@ def test_integrate_segments_merges_strong_patterns(connected_segments, aco_confi
 # Test Edge Cases
 # ===========================================================================
 
+
 def test_integration_with_single_segment(aco_config_with_integration):
     """Test integration with only 1 segment (should do nothing)."""
     single_seg = [
@@ -473,7 +463,7 @@ def test_integration_with_single_segment(aco_config_with_integration):
             type=SegmentType.EXTRUSION,
             speed=3000,
             line_number=1,
-            original_text="G1 X10 Y0 E5"
+            original_text="G1 X10 Y0 E5",
         )
     ]
 
@@ -482,9 +472,7 @@ def test_integration_with_single_segment(aco_config_with_integration):
     pheromone = np.ones((1, 1)) * 0.9
 
     result_segs, merge_count = optimizer._integrate_segments_in_solution(
-        single_seg,
-        pheromone,
-        iteration=3
+        single_seg, pheromone, iteration=3
     )
 
     assert result_segs == single_seg
@@ -501,7 +489,7 @@ def test_integration_with_no_adjacency(aco_config_with_integration):
             type=SegmentType.EXTRUSION,
             speed=3000,
             line_number=1,
-            original_text="G1 X10 Y0 E5"
+            original_text="G1 X10 Y0 E5",
         ),
         Segment(
             start=Point(100, 100, 0, 5),
@@ -509,7 +497,7 @@ def test_integration_with_no_adjacency(aco_config_with_integration):
             type=SegmentType.EXTRUSION,
             speed=3000,
             line_number=2,
-            original_text="G1 X110 Y100 E10"
+            original_text="G1 X110 Y100 E10",
         ),
     ]
 
@@ -520,9 +508,7 @@ def test_integration_with_no_adjacency(aco_config_with_integration):
     optimizer.tau_max = 1.0
 
     result_segs, merge_count = optimizer._integrate_segments_in_solution(
-        separated_segs,
-        pheromone,
-        iteration=3
+        separated_segs, pheromone, iteration=3
     )
 
     # No merges should occur (segments too far apart)
@@ -554,9 +540,7 @@ def test_integration_probability_effect(connected_segments):
     merge_counts = []
     for _ in range(10):
         _, merge_count = optimizer_low._integrate_segments_in_solution(
-            connected_segments,
-            pheromone,
-            iteration=3
+            connected_segments, pheromone, iteration=3
         )
         merge_counts.append(merge_count)
 
@@ -576,9 +560,7 @@ def test_integration_probability_effect(connected_segments):
     merge_counts = []
     for _ in range(10):
         _, merge_count = optimizer_high._integrate_segments_in_solution(
-            connected_segments,
-            pheromone,
-            iteration=3
+            connected_segments, pheromone, iteration=3
         )
         merge_counts.append(merge_count)
 

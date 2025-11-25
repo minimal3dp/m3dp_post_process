@@ -1,4 +1,4 @@
-# 
+#
 
 **Source:** `DesignforFFF-DVB07.pdf`
 ---
@@ -1328,5 +1328,3 @@ tions in Multiauthored Publications,” PLoS Biol, 5(1):e18.
 14
 Copyright © 2015 by ASME
 View publication stats
-
-

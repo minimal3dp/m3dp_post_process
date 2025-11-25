@@ -140,7 +140,6 @@
 ### Current Structure (Follows Python Standards)
 ```
 m3dp_post_process/
-├── .devcontainer/          # Dev container configuration
 ├── .github/                # GitHub workflows (future CI/CD)
 ├── m3dp_post_process/      # Main package (flat structure)
 │   ├── __init__.py
@@ -174,7 +173,7 @@ m3dp_post_process/
 - **Type Hints:** Used throughout for maintainability
 - **Documentation:** Comprehensive docstrings, research citations in code
 - **Configuration as Code:** pyproject.toml for all Python config
-- **Separation of Concerns:** 
+- **Separation of Concerns:**
   - Data models in `gcode_processor.py`
   - Algorithms in separate optimizer files
   - Web layer in `main.py`

@@ -9,6 +9,49 @@
 			"activityBar.background": "#1D3313",
 			"titleBar.activeBackground": "#29471B",
 			"titleBar.activeForeground": "#F7FBF6"
+		},
+		// Python environment configuration
+		"python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+		"python.terminal.activateEnvironment": true,
+		"python.terminal.activateEnvInCurrentTerminal": true,
+		// Python analysis and tooling
+		"python.analysis.typeCheckingMode": "basic",
+		"python.analysis.autoImportCompletions": true,
+		// Formatting with Ruff
+		"[python]": {
+			"editor.formatOnSave": true,
+			"editor.codeActionsOnSave": {
+				"source.fixAll": "explicit",
+				"source.organizeImports": "explicit"
+			},
+			"editor.defaultFormatter": "charliermarsh.ruff"
+		},
+		// Ruff extension settings
+		"ruff.lint.run": "onType",
+		"ruff.organizeImports": true,
+		// Test configuration
+		"python.testing.pytestEnabled": true,
+		"python.testing.unittestEnabled": false,
+		"python.testing.pytestArgs": [
+			"tests"
+		],
+		// File exclusions
+		"files.exclude": {
+			"**/__pycache__": true,
+			"**/*.pyc": true,
+			".pytest_cache": true,
+			".mypy_cache": true,
+			".ruff_cache": true
 		}
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-python.python",
+			"ms-python.vscode-pylance",
+			"charliermarsh.ruff",
+			"ms-python.mypy-type-checker",
+			"github.copilot",
+			"github.copilot-chat"
+		]
 	}
 }

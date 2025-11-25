@@ -1,4 +1,4 @@
-# 
+#
 
 **Source:** `An_effective_ant_colony_optimization_alg.pdf`
 ---
@@ -769,5 +769,3 @@ Journal on Computing 11 (1999) 358–369.
 Computation 174 (2006) 1438–1453.
 S.K. Chaharsooghi, A.H. Meimand Kermani / Applied Mathematics and Computation 200 (2008) 167–177
 177
-
-

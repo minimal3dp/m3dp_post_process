@@ -40,12 +40,12 @@ def test_upload_and_optimize():
         response = client.get(f"/download/optimized_{filename}")
         assert response.status_code == 200
         assert "Optimized by M3DP Post Process" in response.text
-        
+
         # Test File Serving (for Viewer)
         response = client.get(f"/files/{filename}")
         assert response.status_code == 200
         assert "G1 X10 Y10" in response.text
-        
+
     finally:
         # Cleanup
         if os.path.exists(filename):

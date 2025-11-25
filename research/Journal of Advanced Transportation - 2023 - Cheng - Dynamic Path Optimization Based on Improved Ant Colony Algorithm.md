@@ -1249,7 +1249,7 @@ Improved ant colony algorithm
 2666
 4.109
 377.1
-1 
+1
 Ant colony algorithm
 1-5-6-10-11-15-16
 2662
@@ -1382,5 +1382,3 @@ formation Technologies (CoDIT), Tessaloniki, Greece, April
 Journal of Advanced Transportation
 11
  1409, 2023, 1, Downloaded from https://onlinelibrary.wiley.com/doi/10.1155/2023/7651100, Wiley Online Library on [23/11/2025]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
-
-

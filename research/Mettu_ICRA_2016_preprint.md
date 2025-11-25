@@ -1,4 +1,4 @@
-# 
+#
 
 **Source:** `Mettu_ICRA_2016_preprint.pdf`
 ---
@@ -860,5 +860,3 @@ vol. 34, pp. 335–347, 2000.
 “MZZ-GA algorithm for solving path optimization in 3d print-
 ing,” in ICONS 2015: The Tenth International Conference on
 Systems, 2015.
-
-

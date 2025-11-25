@@ -122,7 +122,7 @@ def _build_candidate_list(self, points: List[Tuple[float, float]], k: int) -> di
     """Build candidate lists for all points (k nearest neighbors)."""
     n = len(points)
     candidate_lists = {}
-    
+
     for i in range(n):
         # Calculate distances to all other points
         distances = []
@@ -130,11 +130,11 @@ def _build_candidate_list(self, points: List[Tuple[float, float]], k: int) -> di
             if i != j:
                 dist = self._distance(points[i], points[j])
                 distances.append((dist, j))
-        
+
         # Sort by distance and take k nearest
         distances.sort(key=lambda x: x[0])
         candidate_lists[i] = [j for _, j in distances[:min(k, len(distances))]]
-    
+
     return candidate_lists
 ```
 
@@ -163,11 +163,11 @@ def _check_early_termination(self) -> bool:
     """Check if early termination criteria are met."""
     if not self.config.enable_early_termination:
         return False
-    
+
     # Stop if stagnation limit reached
     if self.stagnation_counter >= self.config.stagnation_limit:
         return True
-    
+
     return False
 ```
 
@@ -177,9 +177,9 @@ for iteration in range(self.config.num_iterations):
     # Check early termination
     if self._check_early_termination():
         break
-    
+
     # ... construct solutions ...
-    
+
     if new_solution_better:
         self.stagnation_counter = 0
     else:
@@ -247,19 +247,19 @@ else:
 
 **Implementation**:
 ```python
-def _nearest_neighbor_tour(self, points: List[Tuple[float, float]], 
+def _nearest_neighbor_tour(self, points: List[Tuple[float, float]],
                            dist_matrix: np.ndarray) -> List[int]:
     """Construct a tour using nearest neighbor heuristic."""
     n = len(points)
     tour = [0]
     unvisited = set(range(1, n))
-    
+
     while unvisited:
         current = tour[-1]
         nearest = min(unvisited, key=lambda node: dist_matrix[current][node])
         tour.append(nearest)
         unvisited.remove(nearest)
-    
+
     return tour
 ```
 
@@ -277,7 +277,7 @@ best_tour = nn_tour
 best_length = nn_length
 ```
 
-**Impact**: 
+**Impact**:
 - Provides realistic bounds for MMAS (better than random)
 - Guarantees algorithm starts with a reasonable solution
 - Often 20-30% better than random initialization
@@ -311,14 +311,14 @@ ACOConfig(
     rho=0.5,
     q0=0.9,
     initial_pheromone=0.1,
-    
+
     # NEW: MMAS parameters
     use_mmas=True,
-    
+
     # NEW: Candidate list parameters
     use_candidate_lists=True,
     candidate_list_size=25,
-    
+
     # NEW: Early termination parameters
     enable_early_termination=True,
     stagnation_limit=15
@@ -409,7 +409,7 @@ Based on additional research analysis, we've identified high-impact optimization
 
 - **Problem**: Dense infill patterns create graphs with thousands of tiny connected segments
 - **Solution**: Dynamically merge frequently-traversed "Segment-Transition-Segment" (STS) groups into super-segments
-- **Mechanism**: 
+- **Mechanism**:
   - After each iteration, identify STS patterns with high pheromone
   - Probabilistically merge them (controlled by parameter θ)
   - Graph size N shrinks over time, accelerating later iterations
@@ -497,10 +497,10 @@ Based on additional research analysis, we've identified high-impact optimization
 
 By applying well-researched optimization strategies, we achieved a **66% reduction in processing time** (5m 12s → 1m 45s) while **improving solution quality by 2.6%**. The improvements are:
 
-✅ **Research-backed**: Based on 4 peer-reviewed papers  
-✅ **Proven effective**: 50-70% speedup achieved  
-✅ **Backward compatible**: All existing tests pass  
-✅ **Configurable**: All features can be toggled  
+✅ **Research-backed**: Based on 4 peer-reviewed papers
+✅ **Proven effective**: 50-70% speedup achieved
+✅ **Backward compatible**: All existing tests pass
+✅ **Configurable**: All features can be toggled
 ✅ **Extensible**: Clear path to Phase 2 (additional 30-40% speedup)
 
 The key insight: **Don't optimize code, optimize algorithms**. The right algorithmic improvements deliver order-of-magnitude gains that code-level optimizations never could.
@@ -560,7 +560,7 @@ The key insight: **Don't optimize code, optimize algorithms**. The right algorit
 @dataclass
 class ACOConfig:
     """Configuration for Ant Colony Optimization with MMAS and performance enhancements."""
-    
+
     # Basic ACO parameters
     num_ants: int = 8                      # Number of ants per iteration
     num_iterations: int = 8                 # Maximum iterations
@@ -569,14 +569,14 @@ class ACOConfig:
     rho: float = 0.5                        # Evaporation rate
     q0: float = 0.9                         # Exploitation vs exploration
     initial_pheromone: float = 0.1          # Initial pheromone level
-    
+
     # MMAS parameters
     use_mmas: bool = True                   # Enable MMAS
-    
+
     # Candidate list parameters
     use_candidate_lists: bool = True        # Enable candidate lists
     candidate_list_size: int = 25           # k-nearest neighbors
-    
+
     # Early termination parameters
     enable_early_termination: bool = True   # Enable early stop
     stagnation_limit: int = 15              # Iterations without improvement
@@ -584,7 +584,7 @@ class ACOConfig:
 
 ---
 
-**Document Version**: 1.0  
-**Date**: November 24, 2025  
-**Author**: Minimal3DP Development Team  
+**Document Version**: 1.0
+**Date**: November 24, 2025
+**Author**: Minimal3DP Development Team
 **Repository**: [github.com/minimal3dp/m3dp_post_process](https://github.com/minimal3dp/m3dp_post_process)

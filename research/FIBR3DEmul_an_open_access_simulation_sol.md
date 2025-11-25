@@ -1,4 +1,4 @@
-# 
+#
 
 **Source:** `FIBR3DEmul_an_open_access_simulation_sol.pdf`
 ---
@@ -423,19 +423,19 @@ Int J Adv Manuf Technol (2020) 106:3609–3623
 
 ## Page 7
 
-V-Rep  
+V-Rep
 Simulator
-G-Code  
-Interpreter 
+G-Code
+Interpreter
 Use
 TCP/IP
-Controller Plugin 
-v_repExtFIBR3D.dll 
-«interface» 
+Controller Plugin
+v_repExtFIBR3D.dll
+«interface»
 Regular API
-«interface» 
+«interface»
 V-Rep UI
-«interface» 
+«interface»
 Communication
 Printer
 Extruder
@@ -447,7 +447,7 @@ Speaker
 Listener
 Trajectory
 Path
- 
+
 1
 Velocity Proﬁle
 1
@@ -564,7 +564,7 @@ pm,X +
 	pi,Y −pf,Y
 d
 
- 
+
 r2 −
 	d
 2
@@ -574,7 +574,7 @@ pm,Y +
 	pi,X −pf,X
 d
 
- 
+
 r2 −
 	d
 2
@@ -589,7 +589,7 @@ pm,X −
 	pi,Y −pf,Y
 d
 
- 
+
 r2 −
 	d
 2
@@ -599,7 +599,7 @@ pm,Y −
 	pi,X −pf,X
 d
 
- 
+
 r2 −
 	d
 2
@@ -1244,5 +1244,3 @@ Publisher’s note Springer Nature remains neutral with regard to
 jurisdictional claims in published maps and institutional affiliations.
 Int J Adv Manuf Technol (2020) 106:3609–3623
 3623
-
-

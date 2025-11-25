@@ -94,7 +94,7 @@ class SomeOptimizer:
     def __init__(self, segments: List[Segment], config: OptConfig):
         self.segments = segments
         self.config = config or OptConfig()
-    
+
     def optimize(self) -> OptimizationResult:
         # 1. Group segments (by layer, part, etc.)
         # 2. Apply algorithm (reorder, modify, insert)
@@ -236,19 +236,19 @@ def test_parser(sample_gcode):
 ## Common Pitfalls & Solutions
 
 ### 1. Parser State Leakage
-**Problem:** Reusing `GCodeParser` instance without resetting state  
+**Problem:** Reusing `GCodeParser` instance without resetting state
 **Solution:** Create new parser per file: `parser = GCodeParser(file_path=path)`
 
 ### 2. ACO Convergence Issues
-**Problem:** ACO produces worse results than greedy  
+**Problem:** ACO produces worse results than greedy
 **Solution:** Tune `num_ants` (8-16) and `num_iterations` (5-20). More ants = better exploration, more iterations = better convergence.
 
 ### 3. BrickLayers Slicer Compatibility
-**Problem:** Slicer doesn't use `;TYPE:` comments  
+**Problem:** Slicer doesn't use `;TYPE:` comments
 **Solution:** BrickLayers requires OrcaSlicer, PrusaSlicer, or Cura (all emit type comments). Won't work with Simplify3D or older slicers.
 
 ### 4. UV Environment Issues
-**Problem:** `python` command uses system Python, not UV venv  
+**Problem:** `python` command uses system Python, not UV venv
 **Solution:** Always prefix with `uv run python` or activate venv first
 
 ## Research Integration

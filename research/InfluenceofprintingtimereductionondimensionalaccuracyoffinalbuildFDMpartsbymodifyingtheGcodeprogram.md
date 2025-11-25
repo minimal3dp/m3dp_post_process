@@ -1,5 +1,5 @@
 # Influence of printing time reduction on dimensional accuracy of final build FDM parts by modifying the G-code program
-**Author:** Dharavathu Naresh 
+**Author:** Dharavathu Naresh
 **Subject:** International Journal on Interactive Design and Manufacturing (IJIDeM), https://doi.org/10.1007/s12008-024-01965-1
 
 **Source:** `InfluenceofprintingtimereductionondimensionalaccuracyoffinalbuildFDMpartsbymodifyingtheGcodeprogram.pdf`
@@ -299,19 +299,19 @@ percentage correspondingly [15–17, 19]. However, altering
 International Journal on Interactive Design and Manufacturing (IJIDeM)
 Fig. 1 a 3D CAD model b Dimensional details of the model
 Fig. 2 Process ﬂow methodology
-CAD Modeling 
-Design Evaluation 
-and stl file 
+CAD Modeling
+Design Evaluation
+and stl file
 conversion
 Slicing
-Generating gcode 
-for different layer 
+Generating gcode
+for different layer
 heights
-Merging gcode for 
+Merging gcode for
 final print
 printing
-Time reduction 
-calculation for each 
+Time reduction
+calculation for each
 print
 these parameters has an impact on the physical charac-
 teristics, precise measurements, and outside appearance of
@@ -997,5 +997,3 @@ author(s) or other rightsholder(s); author self-archiving of the accepted
 manuscript version of this article is solely governed by the terms of such
 publishing agreement and applicable law.
 123
-
-

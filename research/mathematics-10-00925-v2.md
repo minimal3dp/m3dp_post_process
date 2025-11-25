@@ -390,25 +390,25 @@ refers to the solution value containing the path (i, j) of ant k at the t iterat
 value of Zij(T), the weaker the capability of path (i, j) to be compatible with other paths to
 form a near-optimal solution, as the objective function of the TSP is to ﬁnd the minimum
 value.
-Initialize the algorithm 
-Run the traditional ACO 
+Initialize the algorithm
+Run the traditional ACO
 algorithm continuously
-Extract the  performance 
-indices of paths 
+Extract the  performance
+indices of paths
 The path distance
-The average value of 
-the solution containing 
-a given path 
-The near-optimal path 
-identification model 
-Update the pheromone matrix of 
+The average value of
+the solution containing
+a given path
+The near-optimal path
+identification model
+Update the pheromone matrix of
 the saltatory evolution algorithm
 Output the result of the SEACO
 Run for T generations
-Judge whether T ≤Tmax 
+Judge whether T ≤Tmax
 or not
 No
-Judge whether to conduct 
+Judge whether to conduct
 the saltatory evolution at T
 Yes
 Yes
@@ -420,37 +420,37 @@ Figure 1. The SEACO algorithm ﬂow chart.
 
 Mathematics 2022, 10, 925
 7 of 22
-The average value of the 
-solution containing a 
-given path in the first T 
-generations 
-The path distance
-The selected frequency of 
-the path in the first T 
+The average value of the
+solution containing a
+given path in the first T
 generations
- The path pheromone 
-value in the near-optimal 
+The path distance
+The selected frequency of
+the path in the first T
+generations
+ The path pheromone
+value in the near-optimal
 pheromone matrix
-The dispersion degree of the 
+The dispersion degree of the
 path distance
 The main influence factors
 H2
 H0
 H1
 The adjustment variables
-The pheromone 
+The pheromone
 importance factor α
-The heuristic 
-function degree 
+The heuristic
+function degree
 factor β
 The control variables
-The extreme value influence 
+The extreme value influence
 of the path distance
 H3
 H4
 H5
 H6
- 
+
 Figure 2. The conceptual diagram of the hypothesis test.
 5.1.2. The Generation of the Near-Optimal Path Identiﬁcation Rules
 In this section, based on the path performance evaluation indicators proposed in
@@ -639,33 +639,33 @@ Mathematics 2022, 10, 925
 10 of 22
 possible paths starting from node i. It should be emphasized that the discretization will not
 be needed if Zij(T) is null.
-The average value of the 
-solutions containing a 
-given path in the first T 
+The average value of the
+solutions containing a
+given path in the first T
 generations (+)
 The path distance(−)
- The path pheromone value 
-in the near-optimal 
+ The path pheromone value
+in the near-optimal
 pheromone matrix
-The dispersion degree of 
+The dispersion degree of
 path distance(−)
 The main influence factors
 H2
 H0
 The adjustment variables
-The pheromone 
-importance 
+The pheromone
+importance
 factorα(−)
-The heuristic 
-function degree 
+The heuristic
+function degree
 factorβ(−)
-The control 
+The control
 variables
-The extreme value influence of 
+The extreme value influence of
 path distance(+)
 H3
 H4
- 
+
 Figure 3. The results of the hypothesis test.
 (b)
 Incorporating the identiﬁcation rules and predicting the near-optimal path in different
@@ -798,10 +798,10 @@ Formula (9), the following model for predicting the near-optimal path is shown i
 Formula (10).
 τ′
 ij = τij(T) + sin
- 
+
 π
 2 ∗
- 
+
 Zij(T) −min
  Zij(T)
 
@@ -1207,7 +1207,7 @@ Notes: 10th means the SEACO algorithm conducts the saltatory evolution at the 10
 
 Mathematics 2022, 10, 925
 14 of 22
- 
+
 0
 10
 20
@@ -1225,7 +1225,7 @@ Mathematics 2022, 10, 925
 80
 90
 100
-The average saving generations  than the traditional 
+The average saving generations  than the traditional
 ACO algorithm
 The generation when the saltatory evolution  is applied
 'gil262'
@@ -1351,7 +1351,7 @@ all data sets
 0.68
 0
 Notes: (0, 100] represents data sets where n is in (0, 100] and so on.
- 
+
 0
 10
 20
@@ -1373,7 +1373,7 @@ Notes: (0, 100] represents data sets where n is in (0, 100] and so on.
 80
 90
 100
-The average saving generations  than the traditional 
+The average saving generations  than the traditional
 ACO algorithm
 The generation when the saltatory evolution  is applied
  burma14
@@ -1408,7 +1408,7 @@ Mathematics 2022, 10, 925
 16 of 22
 average can be saved when injected at the 20th generation. This means that the SEACO
 algorithm can signiﬁcantly improve the optimization speed of the large-scale TSP.
- 
+
 0
 10
 20
@@ -1427,7 +1427,7 @@ algorithm can signiﬁcantly improve the optimization speed of the large-scale T
 80
 90
 100
-The average saving generations  than the traditional 
+The average saving generations  than the traditional
 ACO algorithm
 The generation when the saltatory evolution  is applied
  pr107
@@ -1435,7 +1435,7 @@ The generation when the saltatory evolution  is applied
  gr137
  pr152
 Figure 6. The optimization results of SEACO algorithm for data sets where n is in (100, 200].
- 
+
 0
 5
 10
@@ -1456,7 +1456,7 @@ Figure 6. The optimization results of SEACO algorithm for data sets where n is i
 80
 90
 100
-The average saving generations  than the traditional 
+The average saving generations  than the traditional
 ACO algorithm
 The generation when the saltatory evolution  is applied
  ts225
@@ -1470,7 +1470,7 @@ Figure 7. The optimization results of SEACO algorithm for data sets where n is i
 
 Mathematics 2022, 10, 925
 17 of 22
- 
+
 0
 10
 20
@@ -1489,7 +1489,7 @@ Mathematics 2022, 10, 925
 80
 90
 100
-The average saving  generations  than the traditional 
+The average saving  generations  than the traditional
 ACO algorithm
 The generation when the saltatory evolution  is applied
  fl417
@@ -1497,7 +1497,7 @@ The generation when the saltatory evolution  is applied
  pr439
  gr666
 Figure 8. The optimization results of SEACO algorithm for data sets where n is in [400, 800].
- 
+
 0
 10
 20
@@ -1515,7 +1515,7 @@ Figure 8. The optimization results of SEACO algorithm for data sets where n is i
 80
 90
 100
-The average saving  generations  than the traditional 
+The average saving  generations  than the traditional
 ACO algorithm
 The generation when the saltatory evolution  is applied
  u1060
@@ -1529,7 +1529,7 @@ Figure 9. The optimization results of SEACO algorithm for data sets where n is i
 
 Mathematics 2022, 10, 925
 18 of 22
- 
+
 0
 5
 10
@@ -1550,7 +1550,7 @@ Mathematics 2022, 10, 925
 80
 90
 100
-The average saving  generations  than the traditional 
+The average saving  generations  than the traditional
 ACO algorithm
 The generation when the saltatory evolution  is applied
 Mean(0,100]
@@ -1587,7 +1587,7 @@ the total number of ants is 200.
 
 Mathematics 2022, 10, 925
 19 of 22
- 
+
 0
 5
 10
@@ -1605,8 +1605,8 @@ Mathematics 2022, 10, 925
 80
 90
 100
-The average saving generations than the traditional 
-ACO algorithm 
+The average saving generations than the traditional
+ACO algorithm
 The generation when the saltatory evolution  is applied
 Mean(0,1000)
 Mean(1000，10000)
@@ -1616,7 +1616,7 @@ Mean(1000000,10000
 Mean(100000000,200
 000000)
 Figure 11. The classiﬁed statistics of path distance dispersion.
- 
+
 0
 5
 10
@@ -1636,7 +1636,7 @@ Figure 11. The classiﬁed statistics of path distance dispersion.
 80
 90
 100
-The average saved generations than the traditional 
+The average saved generations than the traditional
 ACO algorithm
 The generation when the saltatory evolution  is applied
 Mean(0.001,0.01)
@@ -1901,5 +1901,3 @@ Solving TSP Problem: A Comparative Study. Int. J. Comput. Appl. 2014, 96, 1–8.
 Chauhan, A.; Verma, M. 5/4 approximation for Symmetric TSP. arXiv 2019, arXiv:1905.05291.
 26.
 Klug, N.; Chauhan, A.; Ragala, R. k-RNN: Extending NN-heuristics for the TSP. Mob. Netw. Appl. 2019, 24, 1210–1213. [CrossRef]
-
-

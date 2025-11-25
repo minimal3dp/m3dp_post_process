@@ -1,3 +1,21 @@
+"""G-code parsing and optimization core module.
+
+This module provides the fundamental data structures and algorithms for parsing,
+analyzing, and optimizing G-code for FDM 3D printing. It implements a modal state
+machine parser that tracks coordinate systems (G90/G91), extrusion modes (M82/M83),
+and current position across G-code commands.
+
+Key Components:
+    - Point, Segment: Core geometric data structures
+    - SegmentType: Enum classifying move types (extrusion, travel, z-hop, etc.)
+    - GCodeParser: Stateful parser handling relative/absolute positioning
+    - OptimizationResult: Container for optimization metrics and results
+    - Optimizer: Base class for travel optimization algorithms
+
+The parser preserves original G-code text for each segment to enable lossless
+reconstruction while providing structured access to geometric and kinematic data.
+"""
+
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -16,6 +34,15 @@ class SegmentType(Enum):
 
 @dataclass
 class Point:
+    """3D point with extrusion coordinate.
+
+    Attributes:
+        x: X-axis position in mm (absolute or relative based on G90/G91)
+        y: Y-axis position in mm (absolute or relative based on G90/G91)
+        z: Z-axis position in mm (absolute or relative based on G90/G91)
+        e: Extruder position in mm (absolute or relative based on M82/M83)
+    """
+
     x: float
     y: float
     z: float
@@ -24,6 +51,21 @@ class Point:
 
 @dataclass
 class Segment:
+    """Represents a single G-code movement command.
+
+    Segments are the fundamental unit of G-code analysis, capturing both
+    geometric (start/end points) and kinematic (speed) properties, along
+    with metadata for reconstruction.
+
+    Attributes:
+        start: Starting point coordinates
+        end: Ending point coordinates
+        type: Segment classification (EXTRUSION, TRAVEL, Z_HOP, etc.)
+        speed: Feedrate in mm/min (from F parameter)
+        line_number: Original line number in source G-code file
+        original_text: Verbatim G-code line for lossless reconstruction
+    """
+
     start: Point
     end: Point
     type: SegmentType
@@ -33,6 +75,24 @@ class Segment:
 
 
 class GCodeParser:
+    """Modal state machine parser for G-code files.
+
+    Implements a stateful parser that tracks positioning modes (G90/G91),
+    extrusion modes (M82/M83), and current tool position across commands.
+    Handles both absolute and relative coordinate systems correctly.
+
+    Args:
+        file_path: Path to G-code file to parse
+        content: Raw G-code string (alternative to file_path)
+
+    Attributes:
+        segments: Parsed list of movement segments
+        current_pos: Current tool position (modal state)
+        relative_positioning: True if G91 mode active
+        relative_extrusion: True if M83 mode active
+        current_speed: Last F parameter value (modal)
+    """
+
     def __init__(self, file_path: Path | None = None, content: str | None = None):
         self.file_path = file_path
         self.content = content
@@ -164,24 +224,48 @@ class GCodeParser:
 
 @dataclass
 class OptimizationResult:
+    """Container for optimization results and metrics.
+
+    Attributes:
+        segments: Optimized list of G-code segments
+        original_travel_dist: Total travel distance before optimization (mm)
+        optimized_travel_dist: Total travel distance after optimization (mm)
+        optimization_type: Algorithm name (e.g., 'greedy', 'aco', 'bricklayers')
+        metadata: Algorithm-specific statistics (e.g., ACO iterations, convergence)
+        print_time_seconds: Estimated print duration in seconds
+        material_used_mm: Total filament extruded in mm
+        material_used_grams: Approximate material mass in grams
+    """
+
     segments: list[Segment]
     original_travel_dist: float
     optimized_travel_dist: float
     optimization_type: str
-    metadata: dict | None = None  # Optional metadata for optimization-specific stats
-    print_time_seconds: float | None = None  # Estimated print time in seconds
-    material_used_mm: float | None = None  # Material extruded in mm
-    material_used_grams: float | None = None  # Material used in grams (approximate)
-
-    metadata: dict | None = None  # Optional metadata for optimization-specific stats
+    metadata: dict | None = None
+    print_time_seconds: float | None = None
+    material_used_mm: float | None = None
+    material_used_grams: float | None = None
 
 
 class Optimizer:
+    """Base optimizer for G-code travel path optimization.
+
+    Provides common utilities for calculating distances, travel metrics,
+    print time, and material usage. Implements greedy nearest-neighbor
+    travel optimization as baseline algorithm.
+
+    Args:
+        segments: List of parsed G-code segments to optimize
+
+    Attributes:
+        segments: Original segment list (not modified)
+    """
+
     def __init__(self, segments: list[Segment]):
         self.segments = segments
 
     def _calculate_distance(self, p1: Point, p2: Point) -> float:
-        return np.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2)
+        return float(np.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2))
 
     def _calculate_total_travel(self, segments: list[Segment]) -> float:
         total = 0.0
@@ -193,12 +277,12 @@ class Optimizer:
     def _calculate_print_time(self, segments: list[Segment]) -> float:
         """
         Calculate estimated print time in seconds.
-        
+
         Time = Distance / Speed
         Speed in G-code is in mm/min, convert to mm/s for calculation.
         """
         total_seconds = 0.0
-        
+
         for seg in segments:
             if seg.speed > 0:
                 # Calculate distance
@@ -206,45 +290,47 @@ class Optimizer:
                 dy = seg.end.y - seg.start.y
                 dz = seg.end.z - seg.start.z
                 distance = np.sqrt(dx**2 + dy**2 + dz**2)
-                
+
                 # Convert speed from mm/min to mm/s
                 speed_mm_per_sec = seg.speed / 60.0
-                
+
                 # Time = Distance / Speed
                 if speed_mm_per_sec > 0:
                     total_seconds += distance / speed_mm_per_sec
-        
+
         return total_seconds
-    
-    def _calculate_material_usage(self, segments: list[Segment], filament_diameter: float = 1.75) -> tuple[float, float]:
+
+    def _calculate_material_usage(
+        self, segments: list[Segment], filament_diameter: float = 1.75
+    ) -> tuple[float, float]:
         """
         Calculate material usage from extrusion values.
-        
+
         Args:
             segments: List of G-code segments
             filament_diameter: Filament diameter in mm (default 1.75mm PLA)
-        
+
         Returns:
             tuple: (total_extrusion_mm, approximate_weight_grams)
         """
         total_extrusion_mm = 0.0
-        
+
         for seg in segments:
             if seg.type == SegmentType.EXTRUSION:
                 # E value difference is the amount of filament extruded
                 e_diff = seg.end.e - seg.start.e
                 if e_diff > 0:  # Only count positive extrusion
                     total_extrusion_mm += e_diff
-        
+
         # Approximate weight calculation
         # Volume = π * r² * length
         # Weight = volume * density
         # PLA density ≈ 1.24 g/cm³
         radius_mm = filament_diameter / 2.0
-        volume_mm3 = np.pi * (radius_mm ** 2) * total_extrusion_mm
+        volume_mm3 = np.pi * (radius_mm**2) * total_extrusion_mm
         volume_cm3 = volume_mm3 / 1000.0  # Convert mm³ to cm³
         weight_grams = volume_cm3 * 1.24  # PLA density
-        
+
         return total_extrusion_mm, weight_grams
 
     def optimize_travel_greedy(self) -> OptimizationResult:
@@ -327,7 +413,7 @@ class Optimizer:
         # Calculate print time and material usage
         print_time = self._calculate_print_time(new_segments)
         material_mm, material_grams = self._calculate_material_usage(new_segments)
-        
+
         return OptimizationResult(
             segments=new_segments,
             original_travel_dist=original_travel,

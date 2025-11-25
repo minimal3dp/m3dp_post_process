@@ -23,11 +23,31 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
+    """Render main upload interface.
+
+    Args:
+        request: FastAPI request object for template context
+
+    Returns:
+        HTMLResponse with Jinja2-rendered upload form
+    """
     return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.post("/upload", response_class=HTMLResponse)
 async def upload_file(request: Request, file: UploadFile = File(...)):
+    """Upload and parse G-code file, display initial metrics.
+
+    Args:
+        request: FastAPI request object
+        file: Uploaded G-code file
+
+    Returns:
+        HTMLResponse with parsed segment count and original metrics
+        (print time, material usage, travel distance)
+    """
+    if file.filename is None:
+        raise ValueError("Uploaded file must have a filename")
     file_location = UPLOAD_DIR / file.filename
     with open(file_location, "wb+") as file_object:
         shutil.copyfileobj(file.file, file_object)
@@ -71,6 +91,26 @@ async def optimize_file(
     num_ants: int = Form(8),
     num_iterations: int = Form(8),
 ):
+    """Apply optimization algorithm to uploaded G-code file.
+
+    Supports three optimization types:
+    1. Travel optimization (greedy or ACO algorithm)
+    2. BrickLayers layer shifting for structural strength
+    3. Quality improvements (seam hiding, shell crossing reduction)
+
+    Args:
+        request: FastAPI request object
+        filename: Original uploaded filename
+        optimization_type: 'travel', 'bricklayers', or 'quality'
+        algorithm: 'greedy' or 'aco' (for travel optimization)
+        layer_height: Layer height in mm (for BrickLayers)
+        num_ants: Number of ants for ACO (default 8)
+        num_iterations: ACO iteration count (default 8)
+
+    Returns:
+        HTMLResponse with optimization results, before/after metrics,
+        and download link for optimized G-code
+    """
     import logging
 
     logger = logging.getLogger("uvicorn")
@@ -134,10 +174,10 @@ async def optimize_file(
             base_optimizer = Optimizer(parser.segments)
             gcode_content = base_optimizer.to_gcode(result.segments)
         else:  # greedy
-            optimizer = Optimizer(parser.segments)
-            result = optimizer.optimize_travel_greedy()
+            greedy_optimizer = Optimizer(parser.segments)
+            result = greedy_optimizer.optimize_travel_greedy()
             logger.info("✅ Greedy optimization complete")
-            gcode_content = optimizer.to_gcode(result.segments)
+            gcode_content = greedy_optimizer.to_gcode(result.segments)
 
     # Write output file if not already written
     if gcode_content is not None:
@@ -169,11 +209,27 @@ async def optimize_file(
 
 @app.get("/download/{filename}")
 async def download_file(filename: str):
+    """Serve optimized G-code file for download.
+
+    Args:
+        filename: Name of optimized file in outputs/ directory
+
+    Returns:
+        FileResponse with application/octet-stream content type
+    """
     file_path = OUTPUT_DIR / filename
     return FileResponse(file_path, filename=filename)
 
 
 @app.get("/files/{filename}")
-async def get_file(filename: str):
+async def serve_file(filename: str):
+    """Serve uploaded G-code file.
+
+    Args:
+        filename: Name of file in uploads/ directory
+
+    Returns:
+        FileResponse with text/plain content type
+    """
     file_path = UPLOAD_DIR / filename
     return FileResponse(file_path)

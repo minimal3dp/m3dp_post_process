@@ -67,8 +67,7 @@ G-code post-processing application for FDM 3D printing optimization.
 - **Test Coverage:** 91% overall, 70/70 tests passing
 
 ## Prerequisites
-- **Podman** (for containerized deployment)
-- **uv** (for local Python management)
+- **uv** (Python package manager)
 - **Python 3.12+**
 
 ## Local Development
@@ -231,14 +230,6 @@ make bench PRESET=my-large
   original       12,845.10 mm    9,460.22 mm     3,384.88 mm (26.4%)   9.80
   mmas           12,845.10 mm    8,596.77 mm     4,248.33 mm (33.1%)   7.42
   ```
-
-### Deployment with Podman
-
-1.  **Build and Run:**
-    ```bash
-    podman-compose up --build
-    ```
-    *Note: Ensure you have `podman-compose` installed.*
 
 ## Project Structure
 ```

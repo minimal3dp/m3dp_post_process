@@ -3,8 +3,8 @@ Tests for BrickLayers optimization module.
 """
 
 import pytest
+
 from m3dp_post_process.bricklayers import BrickLayersConfig, BrickLayersOptimizer
-from m3dp_post_process.gcode_processor import GCodeParser
 
 
 @pytest.fixture
@@ -51,10 +51,10 @@ def test_bricklayers_optimizer_initialization(tmp_path):
     # Create a temporary G-code file
     gcode_file = tmp_path / "test.gcode"
     gcode_file.write_text("G1 Z0.2\nG1 X10 Y10 E0.5")
-    
+
     config = BrickLayersConfig()
     optimizer = BrickLayersOptimizer(str(gcode_file), config)
-    
+
     assert optimizer.config.layer_height == 0.2
     assert optimizer.z_shift == 0.1  # 0.2 * 0.5
 
@@ -65,10 +65,10 @@ def test_bricklayers_optimize(sample_gcode, tmp_path):
     input_file = tmp_path / "input.gcode"
     output_file = tmp_path / "output.gcode"
     input_file.write_text(sample_gcode)
-    
+
     optimizer = BrickLayersOptimizer(str(input_file))
     result = optimizer.optimize(str(output_file))
-    
+
     assert result.optimization_type == "BrickLayers (Strength)"
     assert "total_layers" in result.metadata
     assert "shifted_blocks" in result.metadata
@@ -82,13 +82,13 @@ def test_bricklayers_shifts_odd_blocks(sample_gcode, tmp_path):
     input_file = tmp_path / "input.gcode"
     output_file = tmp_path / "output.gcode"
     input_file.write_text(sample_gcode)
-    
+
     optimizer = BrickLayersOptimizer(str(input_file))
-    result = optimizer.optimize(str(output_file))
-    
+    optimizer.optimize(str(output_file))
+
     # Read output and check for shift comments
     output_content = output_file.read_text()
-    
+
     # Should have at least one shifted block
     assert "; Shifted Z for block #" in output_content
 
@@ -97,12 +97,12 @@ def test_bricklayers_count_layers(sample_gcode, tmp_path):
     """Test layer counting."""
     input_file = tmp_path / "input.gcode"
     input_file.write_text(sample_gcode)
-    
+
     optimizer = BrickLayersOptimizer(str(input_file))
-    
-    with open(input_file, 'r') as f:
+
+    with open(input_file) as f:
         lines = f.readlines()
-    
+
     layer_count = optimizer._count_layers(lines)
     assert layer_count == 2  # Sample has 2 layers
 
@@ -118,10 +118,10 @@ G1 X20 Y20 E1.0
     input_file = tmp_path / "input.gcode"
     output_file = tmp_path / "output.gcode"
     input_file.write_text(gcode)
-    
+
     optimizer = BrickLayersOptimizer(str(input_file))
     result = optimizer.optimize(str(output_file))
-    
+
     # Should still return a valid result
     assert result.optimization_type == "BrickLayers (Strength)"
     assert result.metadata["shifted_blocks"] == 0

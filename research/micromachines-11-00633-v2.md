@@ -1,4 +1,4 @@
-# 
+#
 
 **Source:** `micromachines-11-00633-v2.pdf`
 ---
@@ -930,5 +930,3 @@ on Machine Learning. IEEE Access 2019, 7, 126913–126928. [CrossRef]
 © 2020 by the authors. Licensee MDPI, Basel, Switzerland. This article is an open access
 article distributed under the terms and conditions of the Creative Commons Attribution
 (CC BY) license (http://creativecommons.org/licenses/by/4.0/).
-
-

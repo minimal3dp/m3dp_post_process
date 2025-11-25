@@ -1,4 +1,4 @@
-# 
+#
 
 **Source:** `Ant_Colony_Optimization_An_Overview.pdf`
 ---
@@ -31,18 +31,18 @@ Metaheuristics include:
 Vittorio Maniezzo - University of Bologna
 3/52
 Ant System
-Ant System (AS) was the first ACO algorithm 
-presented [CDM91]. 
-The idea it was to modify a constructive heuristic so 
+Ant System (AS) was the first ACO algorithm
+presented [CDM91].
+The idea it was to modify a constructive heuristic so
 that the ordering of the components could be
 recalculated at each iteration taking into account
 •
-the a priori expectation, ηi, of the usefulness of a 
-particular component ci as in standard 
-constructive approaches, 
+the a priori expectation, ηi, of the usefulness of a
+particular component ci as in standard
+constructive approaches,
 •
-but also an a posteriori measure, τi, of the 
-goodness of solutions constructed using that 
+but also an a posteriori measure, τi, of the
+goodness of solutions constructed using that
 particular component.
 
 
@@ -56,7 +56,7 @@ general purpose heuristic inspired by nature;
 •
 parallel distributed search effort;
 • combines a problem-specific constructive
-heuristic (visibility) and a general-purpose 
+heuristic (visibility) and a general-purpose
 adaptive problem representation
 
 
@@ -65,16 +65,16 @@ adaptive problem representation
 Vittorio Maniezzo - University of Bologna
 5/52
 ACO
-Ant Colony Optimization is the name given by 
-M.Dorigo [D98] to a class of algorithms whose first 
-member was AS. 
+Ant Colony Optimization is the name given by
+M.Dorigo [D98] to a class of algorithms whose first
+member was AS.
 The main underlying idea is that of parallelizing
-search over several constructive computational 
+search over several constructive computational
 threads, all based on a dynamic memory structure
 with information on the effectiveness of previously
-obtained results and in which the behavior of each 
+obtained results and in which the behavior of each
 single agent is inspired by the behavior of real ants.
-Web page: 
+Web page:
 http:/ / iridia.ulb.ac.be/ ~mdorigo/ ACO/ ACO.html
 
 
@@ -147,15 +147,15 @@ Vittorio Maniezzo - University of Bologna
 7/52
 Ant agents
 An ant is defined to be a simple computational
-agent, which iteratively constructs a solution for the 
-problem to solve. 
-Partial problem solutions are seen as states; each 
-ant moves from a state ι to another one ψ, 
-corresponding to a more complete partial solution. 
-At each step σ, each ant k computes a set of 
-feasible expansions to its current state, and moves 
-to one of these in probability, according to a 
-probability distribution specified as follows. 
+agent, which iteratively constructs a solution for the
+problem to solve.
+Partial problem solutions are seen as states; each
+ant moves from a state ι to another one ψ,
+corresponding to a more complete partial solution.
+At each step σ, each ant k computes a set of
+feasible expansions to its current state, and moves
+to one of these in probability, according to a
+probability distribution specified as follows.
 
 
 ## Page 8
@@ -163,12 +163,12 @@ probability distribution specified as follows.
 Vittorio Maniezzo - University of Bologna
 8/52
 Probability of a move
-The formula for defining the probability distribution 
-at each move makes use of a set tabuk which 
-indicates a set of infeasible moves for ant k. 
+The formula for defining the probability distribution
+at each move makes use of a set tabuk which
+indicates a set of infeasible moves for ant k.
 Probabilities are computed as follows:
-Parameter α defines the relative importance of trail 
-with respect to attractiveness. 
+Parameter α defines the relative importance of trail
+with respect to attractiveness.
 (
 )
 
@@ -207,7 +207,7 @@ otherwise
 0
 tabu
 )
-( 
+(
 if
 )
 1(
@@ -227,13 +227,13 @@ k
 Vittorio Maniezzo - University of Bologna
 9/52
 Trail update
-Trails are updated at each iteration, increasing the 
-level of those related to moves that were part of 
-"good" solutions, while decreasing all others. 
-After each iteration t of the algorithm, trails are 
+Trails are updated at each iteration, increasing the
+level of those related to moves that were part of
+"good" solutions, while decreasing all others.
+After each iteration t of the algorithm, trails are
 updated using the following formula.
 where ρ is a user-defined coefficient and ∆τιψ
-represents the sum of the contributions of all ants 
+represents the sum of the contributions of all ants
 that used move (ιψ) to construct their solution.
 ιψ
 ιψ
@@ -259,16 +259,16 @@ Vittorio Maniezzo - University of Bologna
 10/52
 Attractiveness and trail
 For ant k, the probability pιψ of moving from state ι
-to state ψ depends on the combination of two 
+to state ψ depends on the combination of two
 values:
 •
-the attractiveness η of the move, as computed by 
-some heuristic indicating the a priori desirability 
+the attractiveness η of the move, as computed by
+some heuristic indicating the a priori desirability
 of that move;
 •
-the trail level τ of the move, indicating how 
-proficient it has been in the past to make that 
-particular move, the a posteriori the 
+the trail level τ of the move, indicating how
+proficient it has been in the past to make that
+particular move, the a posteriori the
 desirability of that move.
 
 
@@ -312,14 +312,14 @@ Initialize τιψ, ∀ι,ψ
 For each ant k do
 repeat
 compute ηιψ ∀ι,ψ
-choose in probability the state to move into 
+choose in probability the state to move into
 append the chosen move to the k-th ant’s set tabuk
 until ant k has completed its solution
 [apply a local optimization procedure]
 enddo
 3. (Trail update)
 For each ant move (ι,ψ) do
-compute ∆τιψ and update the trail values 
+compute ∆τιψ and update the trail values
 4. (Terminating condition)
 If not(end_condition) go to step 2.
 
@@ -332,7 +332,7 @@ Ant System
 1. Initialize a set A of partial solutions
 ai=∅, i=1, … , m.
 2. For i=1 to m
-choose a component cj to append to solution ai with 
+choose a component cj to append to solution ai with
 probability given as a function of ai, ηj, τj.
 3. If the solutions in A are not complete, go to step 2.
 4. Evaluate z(ai), i=1, … , m and update τj, j=1, … , n
@@ -345,17 +345,17 @@ accordingly.
 Vittorio Maniezzo - University of Bologna
 14/52
 ANTS conferences
-The ACO has been specified in different ways by 
-different authors. 
-This variety was represented in the ANTS series of 
-international workshops (ANTS'98, ANTS‘2000 and 
+The ACO has been specified in different ways by
+different authors.
+This variety was represented in the ANTS series of
+international workshops (ANTS'98, ANTS‘2000 and
 ANTS'2002), conferences entirely devoted to
-algorithms inspired by the observation of ants 
-behavior. 
+algorithms inspired by the observation of ants
+behavior.
 Many applications: from plan merging to routing
-problems, from driver scheduling to search space 
-sharing, from set covering to nurse scheduling, from 
-graph coloring to dynamic multiple criteria 
+problems, from driver scheduling to search space
+sharing, from set covering to nurse scheduling, from
+graph coloring to dynamic multiple criteria
 balancing problems, etc.
 
 
@@ -364,41 +364,41 @@ balancing problems, etc.
 Vittorio Maniezzo - University of Bologna
 15/52
 ACO approaches
-ABC    
-Bonabeau et al. [B98], van der Put, Rothkrantz 
-[vdPR98] 
+ABC
+Bonabeau et al. [B98], van der Put, Rothkrantz
+[vdPR98]
  network routing
-ACS    
-Dorigo, Ganbardella [DG97]  
+ACS
+Dorigo, Ganbardella [DG97]
  TSP, VRP
-AntNet Di Caro, Dorigo [DCD97], [DCD98] 
+AntNet Di Caro, Dorigo [DCD97], [DCD98]
  network routing
-ANTS   Maniezzo [M98] , Maniezzo, Carbonaro [MC99] 
+ANTS   Maniezzo [M98] , Maniezzo, Carbonaro [MC99]
  QAP, FAP
-AS     
-Colorni, Dorigo, Maniezzo [CDM91], [D92], 
-[CDMT94], [DMC96] 
+AS
+Colorni, Dorigo, Maniezzo [CDM91], [D92],
+[CDMT94], [DMC96]
  TSP, QAP, JSP
-ASrank Bullnheimer, Hartl, Strauss [BHS97] 
+ASrank Bullnheimer, Hartl, Strauss [BHS97]
  TSP, VRP
-HAS    
-Gambardella, Taillard, Dorigo [GTD99]  
+HAS
+Gambardella, Taillard, Dorigo [GTD99]
  QAP, VRP, SOP
-MMAS   Stuetzle, Hoos [SH98,SD99] 
+MMAS   Stuetzle, Hoos [SH98,SD99]
  TSP, QAP
-AS-SCS Michel, Middendorf [MM98] 
+AS-SCS Michel, Middendorf [MM98]
  SCS
-- 
-Costa, Hertz [CH97] 
+-
+Costa, Hertz [CH97]
  GCP
-- 
-Merkle, Middendorf, Schmeck [MM00,MMS00] 
+-
+Merkle, Middendorf, Schmeck [MM00,MMS00]
  Scheduling Problems
-- 
-Gambardella, Dorigo [GD00] 
+-
+Gambardella, Dorigo [GD00]
  SOP
-- 
-Kawamura et al. [KYSO00] 
+-
+Kawamura et al. [KYSO00]
  TSP
 
 
@@ -407,17 +407,17 @@ Kawamura et al. [KYSO00]
 Vittorio Maniezzo - University of Bologna
 16/52
 Max-min ant system
-Stuetzle and Hoos  [SH97] introduced Max-Min Ant 
-System (MMAS), a modification of AS. 
-They use two parameters, a maximum and minimum 
-trail levels, in order to restrict possible trail values to 
-the interval [τmin, τmax]. 
-Moreover, MMAS controls the trail levels (initialized to 
-their maximum value τmax, only allowing the best ant 
-at each iteration to update trails. 
-Trails that receive very rare reinforcements will lower 
-their strength and will be selected more and more 
-rarely by the ants, until they reach the τmin value. 
+Stuetzle and Hoos  [SH97] introduced Max-Min Ant
+System (MMAS), a modification of AS.
+They use two parameters, a maximum and minimum
+trail levels, in order to restrict possible trail values to
+the interval [τmin, τmax].
+Moreover, MMAS controls the trail levels (initialized to
+their maximum value τmax, only allowing the best ant
+at each iteration to update trails.
+Trails that receive very rare reinforcements will lower
+their strength and will be selected more and more
+rarely by the ants, until they reach the τmin value.
 
 
 ## Page 17
@@ -425,15 +425,15 @@ rarely by the ants, until they reach the τmin value.
 Vittorio Maniezzo - University of Bologna
 17/52
 AS-rank
-Bullnheimer, Hartl and Strauss [BHS97] proposed yet 
-another modification of AS, called AS-rank, 
-introducing a rank-based version of the probability 
-distribution to limit the danger of over-emphasized 
+Bullnheimer, Hartl and Strauss [BHS97] proposed yet
+another modification of AS, called AS-rank,
+introducing a rank-based version of the probability
+distribution to limit the danger of over-emphasized
 trails caused by many ants using sub-optimal
-solutions. 
-At each iteration the ants are sorted by solution 
-quality and the contribution of an ant to the trail 
-level update is weighted according to the rank of 
+solutions.
+At each iteration the ants are sorted by solution
+quality and the contribution of an ant to the trail
+level update is weighted according to the rank of
 the ant, considering only the Ωbest ants.
 
 
@@ -442,17 +442,17 @@ the ant, considering only the Ωbest ants.
 Vittorio Maniezzo - University of Bologna
 18/52
 Ant Colony System
-Gambardella and Dorigo [GD95, 97] proposed ACS, 
-where trails are updated with (constant) values which 
-predict the quality of solution using the relative edges. 
-Trail values are added offline only to the arcs 
-belonging to the best tour so far, while ants perform 
+Gambardella and Dorigo [GD95, 97] proposed ACS,
+where trails are updated with (constant) values which
+predict the quality of solution using the relative edges.
+Trail values are added offline only to the arcs
+belonging to the best tour so far, while ants perform
 online step-by-step trail updates to favor the
-emergence of other solutions. 
-Each ant uses a pseudo-random proportional rule to 
+emergence of other solutions.
+Each ant uses a pseudo-random proportional rule to
 choose the next node to move to based on a q0 ∈[0,1]
-parameter that modulates the exploration inclinacy. 
-ACS also uses a data structure associated to vertices 
+parameter that modulates the exploration inclinacy.
+ACS also uses a data structure associated to vertices
 called candidate list, as in GRASP.
 
 
@@ -469,16 +469,16 @@ Initialize τιψ, ∀ι,ψ with the primal variable values
 (Construction)
 For each ant k do
 repeat
-compute ηιψ ∀ι,ψ, as a lower bound to the cost of 
+compute ηιψ ∀ι,ψ, as a lower bound to the cost of
 completing a solution containing ι,ψ
-choose in probability the state to move into 
+choose in probability the state to move into
 append the chosen move to the k-th ant’s set tabuk
 until ant k has completed its solution
 apply a local optimization procedure
 enddo
 3. (Trail update)
 For each ant move (ι,ψ) do
-compute ∆τιψ and update the trail values 
+compute ∆τιψ and update the trail values
 4. (Terminating condition)
 If not(end_test) go to step 2.
 
@@ -488,11 +488,11 @@ If not(end_test) go to step 2.
 Vittorio Maniezzo - University of Bologna
 20/52
 Convergence
-W.Gutjahr [W00] proposed a convergence proof for 
+W.Gutjahr [W00] proposed a convergence proof for
 AS.
-For a restricted version of AS and using suitable 
-parameter values (many ants or little evaporation), 
-the propobability of AS achieving an optimal 
+For a restricted version of AS and using suitable
+parameter values (many ants or little evaporation),
+the propobability of AS achieving an optimal
 solution can be made arbitrarily close to 1.
 
 
@@ -501,7 +501,7 @@ solution can be made arbitrarily close to 1.
 Vittorio Maniezzo - University of Bologna
 21/52
 Current applications …
-Applications are listed by class of problems and in 
+Applications are listed by class of problems and in
 chronological order (from Dorigo, Gambardella, 2003).
 Problem name
 Authors
@@ -622,11 +622,11 @@ ACO-VWP
 1999
 Redundancy allocation
 Liang, Smith
-ACO-RAP 
+ACO-RAP
 1999
 Constraint satisf.
 Solnon
-Ant-P-solver 
+Ant-P-solver
 2000
 
 
@@ -676,5 +676,3 @@ Civil protection
 Vittorio Maniezzo - University of Bologna
 29/52
 Traffic flow optimization
-
-

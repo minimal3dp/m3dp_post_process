@@ -1,4 +1,4 @@
-# 
+#
 
 **Source:** `li2020gcode.pdf`
 ---
@@ -120,11 +120,11 @@ Speed Optimization Passes
 Accessory
 Edge
 Insertion
-Heuristics for 
+Heuristics for
 next edge visting
 Segmentation
-SCC 
-(strongly connected 
+SCC
+(strongly connected
 components)
 identification
 Preprocessing Passes
@@ -602,5 +602,3 @@ und ohne Unterbrechung zu umfahren (March 1873)
 In: IEEE Spectrum. IEEE (May 2019)
 8. Torrubia, G.S., Blanc, C.T., Navascu´es-Galante, L.: Eulerpathsolver : A new application
 for ﬂeury ’ s algorithm simulation (2009)
-
-

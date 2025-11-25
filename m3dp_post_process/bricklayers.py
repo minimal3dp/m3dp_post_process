@@ -8,11 +8,12 @@ Original: https://github.com/TengerTechnologies/Bricklayers
 Copyright (c) 2025 Roman Tenger
 """
 
-import re
 import logging
+import re
 from dataclasses import dataclass
+from pathlib import Path
 
-from .gcode_processor import GCodeParser, Segment, SegmentType, OptimizationResult, Optimizer
+from .gcode_processor import GCodeParser, OptimizationResult, Optimizer
 
 logger = logging.getLogger(__name__)
 
@@ -49,24 +50,22 @@ class BrickLayersOptimizer:
             OptimizationResult with statistics
         """
         logger.info("Starting BrickLayers optimization")
-        logger.info(
-            f"Z-shift: {self.z_shift} mm, Layer height: {self.config.layer_height} mm"
-        )
+        logger.info(f"Z-shift: {self.z_shift} mm, Layer height: {self.config.layer_height} mm")
 
         # Read the input G-code file
-        with open(self.file_path, 'r') as f:
+        with open(self.file_path) as f:
             gcode_lines = f.readlines()
 
         # Process the G-code
         modified_lines = self._process_gcode(gcode_lines)
 
         # Write the output file
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             f.writelines(modified_lines)
 
         # Parse output file to calculate metrics
         try:
-            parser = GCodeParser(file_path=output_path)
+            parser = GCodeParser(file_path=Path(output_path))
             parser.parse()
             temp_optimizer = Optimizer(parser.segments)
             print_time = temp_optimizer._calculate_print_time(parser.segments)
@@ -188,14 +187,18 @@ class BrickLayersOptimizer:
                                 f"Multiplying E value by 1.5 on first layer (shifted block): {e_value:.5f} -> {new_e_value:.5f}"
                             )
                             line = re.sub(r"E[-\d.]+", f"E{new_e_value:.5f}", line).strip()
-                            line += f" ; Adjusted E for first layer, block #{perimeter_block_count}\n"
+                            line += (
+                                f" ; Adjusted E for first layer, block #{perimeter_block_count}\n"
+                            )
                         elif current_layer == total_layers - 1:  # Last layer
                             new_e_value = e_value * 0.5
                             logger.debug(
                                 f"Multiplying E value by 0.5 on last layer (shifted block): {e_value:.5f} -> {new_e_value:.5f}"
                             )
                             line = re.sub(r"E[-\d.]+", f"E{new_e_value:.5f}", line).strip()
-                            line += f" ; Adjusted E for last layer, block #{perimeter_block_count}\n"
+                            line += (
+                                f" ; Adjusted E for last layer, block #{perimeter_block_count}\n"
+                            )
                         else:
                             new_e_value = e_value * self.config.extrusion_multiplier
                             logger.debug("Multiplying E value by extrusionMultiplier")

@@ -1062,5 +1062,3 @@ Dorigo, M.; Birattari, M.; Stützle, T. Ant colony optimization. IEEE Comput. In
 © 2016 by the authors; licensee MDPI, Basel, Switzerland. This article is an open access
 article distributed under the terms and conditions of the Creative Commons Attribution
 (CC-BY) license (http://creativecommons.org/licenses/by/4.0/).
-
-

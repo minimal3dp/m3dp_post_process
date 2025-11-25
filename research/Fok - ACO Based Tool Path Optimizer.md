@@ -1,4 +1,4 @@
-# 
+#
 
 **Source:** `Fok - ACO Based Tool Path Optimizer.pdf`
 ---
@@ -112,11 +112,11 @@ In this work, an ant colony optimization (ACO) based
 tool–path optimizer for 3D printing applications is proposed
 to shorten printing processes and improve visual quality of
 printed models simultaneously. The proposed optimizer accel-
-The following publication Fok, K. Y., Cheng, C. T., Ganganath, N., Iu, H. H. C., & Chi, K. T. (2019). An ACO-Based Tool-Path Optimizer for 3-D Printing 
+The following publication Fok, K. Y., Cheng, C. T., Ganganath, N., Iu, H. H. C., & Chi, K. T. (2019). An ACO-Based Tool-Path Optimizer for 3-D Printing
 Applications. IEEE Transactions on Industrial Informatics, 15(4), 2277-2287 is available at https://doi.org/10.1109/TII.2018.2889740.
 This is the Pre-Published Version.
-© 2018 IEEE. Personal use of this material is permitted. Permission from IEEE must be obtained for all other uses, in any current or future media, 
-including reprinting/republishing this material for advertising or promotional purposes, creating new collective works, for resale or redistribution to 
+© 2018 IEEE. Personal use of this material is permitted. Permission from IEEE must be obtained for all other uses, in any current or future media,
+including reprinting/republishing this material for advertising or promotional purposes, creating new collective works, for resale or redistribution to
 servers or lists, or reuse of any copyrighted component of this work in other works.
 
 
@@ -268,7 +268,7 @@ of edges Ep of minimum total cost, such that Er ∪Ep is
 Euler and Ep ⊂
 
 (i, j) : i ∈V, j ∈V, i ̸= j
-	
+
 . Therefore,
 a tour that traverses all edges in Er can be generated using
 the set Er ∪Ep. Furthermore, let Ey(i) be the set of edges
@@ -437,20 +437,20 @@ problem into a TSP by conducting the following steps. Each
 Read all print segments on a layer
 Dissect into separated parts according
  to their contours
-If more than 
-one dissected 
+If more than
+one dissected
 part
-Refine the printing path to suppress the printing 
+Refine the printing path to suppress the printing
 nozzle from hopping across shells on the layer
-Search for a path with the minimum cost to traverse 
+Search for a path with the minimum cost to traverse
 all print segments within each dissected part
-Search for a path with the minimum cost to traverse 
+Search for a path with the minimum cost to traverse
 all parts and the start vertex of the layer
-If all layers 
+If all layers
 are optimized
-The optimized 
+The optimized
 printing path
-A sliced 
+A sliced
 model
 Save the current layer and move to the next layer
 Fig. 2: The workﬂow of the proposed optimizer.
@@ -620,7 +620,7 @@ is expressed as
 Sa =
 
 vst, va1, · · · , va2i−1, va2i, va2(i+1, va2(i+1)+1, · · · , va2n
-
+
 .
 Here, Sa contains n transitions to connect all n print seg-
 ments to vst. The i-th and (i + 1)-th print segments are
@@ -638,7 +638,7 @@ process.
 The probability for a STS group, which contains the i-th
 transition, to be integrated is expressed as
 p(i,i+1)(t) = min
- 
+
 θn[τ2i,2i+1(t)]α[η2i,2i+1]β
 Pn
 j=1[τ2j,2j+1(t)]α[η2j,2j+1]β , 1
@@ -658,7 +658,7 @@ X
 i=1
 "
 min
- 
+
 θn[τ2i,2i+1(t)]α[η2i,2i+1]β
 Pn
 j=1[τ2j,2j+1(t)]α[η2j,2j+1]β , 1
@@ -673,7 +673,7 @@ p(i,i+1)(t)
 n
 X
 i=1
- 
+
 θn[τ2i,2i+1(t)]α[η2i,2i+1]β
 Pn
 j=1[τ2j,2j+1(t)]α[η2j,2j+1]β
@@ -1458,5 +1458,3 @@ partment of Electronic and Information Engineering
 from 2005 to 2012. His research interests include
 power electronics, nonlinear circuits, and complex
 network applications.
-
-

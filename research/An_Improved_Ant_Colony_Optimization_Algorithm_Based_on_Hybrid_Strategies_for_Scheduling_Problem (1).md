@@ -1,4 +1,4 @@
-# 
+#
 
 **Source:** `An_Improved_Ant_Colony_Optimization_Algorithm_Based_on_Hybrid_Strategies_for_Scheduling_Problem (1).pdf`
 ---
@@ -66,7 +66,7 @@ selves to the research of the ACO algorithm, and some
 improved ACO algorithms are proposed to solve the com-
 plex optimization problems. Some better results and effects
 VOLUME 7, 2019
-2169-3536 
+2169-3536
  2019 IEEE. Translations and content mining are permitted for academic research only.
 Personal use is also permitted, but republication/redistribution requires IEEE permission.
 See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
@@ -1136,5 +1136,3 @@ versity of China, Tianjin, China. Her research
 interests include artiﬁcial intelligence, signal processing, and fault diagnosis.
 20292
 VOLUME 7, 2019
-
-
