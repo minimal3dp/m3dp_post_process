@@ -49,21 +49,16 @@ class OptimizationResult:
 
 ## Development Environment
 
-### Devcontainer (Podman/Docker)
-- **Python 3.12** + **UV** package manager (pre-installed)
-- PostgreSQL service (currently disabled, ready to enable)
+### Local Development with UV
+- **Python 3.12+** + **UV** package manager
 - **CRITICAL:** Always use `uv` commands, not plain `pip`/`python`
   ```bash
+  uv venv                      # Create virtual environment
+  source .venv/bin/activate    # Activate venv
   uv pip install -e ".[dev]"   # Install with dev dependencies
   uv run pytest                # Run tests with correct env
   uv run uvicorn m3dp_post_process.main:app --reload  # Dev server
   ```
-
-### SSH Key Forwarding (Git/GitHub)
-- Devcontainer forwards host SSH agent → `/ssh-agent`
-- **After editing `devcontainer.json` SSH mounts**: Must rebuild container (`Ctrl+Shift+P` → "Dev Containers: Rebuild")
-- Test: `ssh -T git@github.com` (should show GitHub username)
-- See `.devcontainer/README.md` for troubleshooting
 
 ### Testing Strategy
 - **Unit tests:** Per-algorithm logic (pytest fixtures for sample G-code)
@@ -137,9 +132,6 @@ uv run uvicorn m3dp_post_process.main:app --reload --host 0.0.0.0 --port 8000
 
 # Production mode
 uv run uvicorn m3dp_post_process.main:app --host 0.0.0.0 --port 8000
-
-# Docker Compose (includes PostgreSQL, currently unused)
-podman-compose up --build
 ```
 
 ### Testing
@@ -236,8 +228,7 @@ def test_parser(sample_gcode):
 ├── guide/                    # Strategy/architecture docs
 ├── g-code/                   # Sample files for manual testing
 ├── uploads/                  # Runtime: user uploads (gitignored)
-├── outputs/                  # Runtime: optimized files (gitignored)
-└── .devcontainer/            # Container config + README
+└── outputs/                  # Runtime: optimized files (gitignored)
 ```
 
 **Git ignore pattern:** Research PDFs ignored (large files), markdown conversions tracked.
@@ -282,10 +273,10 @@ Expected improvement: 30-35% reduction in extrusionless travel.
 
 ## Future Architecture Considerations
 
-### Database Integration (Currently Disabled)
-- PostgreSQL service exists in `docker-compose.yml` but unused
+### Database Integration (Future Consideration)
 - Planned for: User profiles, optimization history, material libraries
-- Enable by: Uncommenting `depends_on: db` in `docker-compose.yml`
+- Not currently implemented (application is stateless)
+- Would require adding PostgreSQL connection via SQLAlchemy
 
 ### Modular Monolith Evolution
 Current flat structure will refactor to:
