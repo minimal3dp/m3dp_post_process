@@ -31,7 +31,17 @@ if [ -d "/home/vscode/.cache/uv" ]; then
     sudo chown -R vscode:vscode /home/vscode/.cache/uv
 fi
 
+# Fix SSH agent socket permissions
+if [ -S "/ssh-agent" ]; then
+    echo "  ✓ Fixing SSH agent socket permissions"
+    sudo chmod 666 /ssh-agent
+    export SSH_AUTH_SOCK=/ssh-agent
+fi
+
 echo "✅ Ownership fixes complete!"
 echo ""
 echo "Current user: $(whoami) (UID: $(id -u))"
 echo "Workspace owner: $(stat -c '%U (UID: %u)' /workspace)"
+if [ -S "/ssh-agent" ]; then
+    echo "SSH agent socket: $(stat -c '%A %U:%G' /ssh-agent)"
+fi

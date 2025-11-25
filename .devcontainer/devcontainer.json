@@ -68,7 +68,8 @@
   // Environment variables
   "containerEnv": {
     "UV_PROJECT_ENVIRONMENT": "/workspace/.venv",
-    "PYTHONUNBUFFERED": "1"
+    "PYTHONUNBUFFERED": "1",
+    "SSH_AUTH_SOCK": "/ssh-agent"
   },
 
 
