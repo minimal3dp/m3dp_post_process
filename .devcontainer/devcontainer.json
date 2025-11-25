@@ -61,7 +61,7 @@
   "remoteUser": "vscode",
 
   // Run commands after container is created
-  "postCreateCommand": "uv pip install -e '.[dev]'",
+  "postCreateCommand": "uv venv && uv pip install -e '.[dev]'",
   // Run commands after container starts (every time)
   "postStartCommand": ".devcontainer/fix-permissions.sh",
 
